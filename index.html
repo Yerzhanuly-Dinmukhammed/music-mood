@@ -225,7 +225,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
     <span style="display:grid;gap:22px;justify-items:center">
       <span class="mono" style="color:var(--lime);font-size:clamp(14px,1.3vw,20px)">C:\&gt; music_mood.exe — ready</span>
       <span style="font:400 clamp(44px,7vw,120px)/1 var(--display)">▶ START THE SHOW</span>
-      <span class="mono" style="font-size:clamp(13px,1.1vw,18px);opacity:.75">click once (or press any key) — this lets the browser play music</span>
+      <span class="mono" style="font-size:clamp(13px,1.1vw,18px);opacity:.75">click once (or press any key) — goes fullscreen &amp; lets the browser play music</span>
     </span>
   </button>
   <button id="standbyBar" class="hidden" style="position:fixed;inset:auto 0 52px 0;z-index:40;border:0;border-top:3px solid var(--ink);background:var(--orange);font:700 16px/1.3 var(--mono);padding:12px;cursor:pointer">⏸ STANDBY — another screen is presenting. Click here or press → to take control on THIS screen.</button>
@@ -242,7 +242,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
           <button class="btn" id="hookB">▶ Sound B</button>
         </div>
         <div class="reveal" id="hookReveal">
-          <p class="mono" style="color:var(--lime);margin:0 0 12px">A = John Williams, Jaws · B = Katrina &amp; The Waves, Walking on Sunshine</p><h2 class="mid">Same room. Same people. 10 seconds.<br><span class="hl" style="color:var(--ink)">Completely different feelings.</span></h2>
+          <p class="mono" style="color:var(--lime);margin:0 0 12px">A = Stranger Things (Theme) · B = Katrina &amp; The Waves, Walking on Sunshine</p><h2 class="mid">Same room. Same people. 10 seconds.<br><span class="hl" style="color:var(--ink)">Completely different feelings.</span></h2>
         </div>
       </div>
     </section>
@@ -364,7 +364,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
         </div>
         <div class="row" style="justify-content:space-between;margin-top:10px">
           <h2 class="mid">Thank you! <span class="hl p">Questions?</span></h2>
-          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · music: John Williams, Katrina &amp; The Waves, Imagine Dragons, Lewis Capaldi, Marconi Union, Pharrell, Hans Zimmer · 30-sec previews via Apple Music</span>
+          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · music: Kyle Dixon &amp; Michael Stein, Katrina &amp; The Waves, Imagine Dragons, Lewis Capaldi, Cigarettes After Sex, Pharrell, Hans Zimmer · 30-sec previews via Apple Music</span>
         </div>
       </div>
     </section>
@@ -373,6 +373,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
   <div class="task">
     <button class="start" id="setupBtn" style="font:inherit;cursor:pointer">♪ MUSIC <span id="musicCount">0/7</span></button>
     <span id="slideName" class="mono">hook</span>
+    <button id="fsBtn" class="btn white" style="min-height:34px;padding:4px 10px;font-size:13px;box-shadow:2px 2px 0 var(--ink)">⛶ Fullscreen (F)</button>
     <div class="dots" id="dots"></div>
     <span class="live" id="liveDot"><i></i><span id="liveTxt">connecting…</span></span>
   </div>
@@ -465,7 +466,7 @@ const ROUNDS = [
   {key:'sad', bar:'purple', img:'1511634829096-045a111727eb', cr:'cg / Unsplash',
    why:'Slow tempo, soft piano, a voice that almost breaks — and lyrics about loss. Sad songs don\'t always make you sadder: they can make you feel understood.'},
   {key:'calm', bar:'blue', img:'1718382341267-aef8a9e4ecef', cr:'cipriann / Unsplash',
-   why:'Made together with sound therapists: the tempo slowly drops, there\'s no catchy melody to follow, low tones hum steadily — your breathing slows down with it.'},
+   why:'Slow tempo, soft whispered vocals, long dreamy reverb and no sudden changes. Your nervous system reads it as "safe" — breathing slows down and you relax.'},
   {key:'joy', bar:'pink', img:'1454486837617-ce8e1ba5ebfe', cr:'dre0316 / Unsplash',
    why:'Major key, handclaps, a bouncy rhythm and a chorus everyone can sing. Bright major-key music is the fastest way to lift a whole room.'},
   {key:'focus', bar:'lime', img:'1741699428220-65f37f3fbbcb', cr:'zoshuacolah / Unsplash',
@@ -579,11 +580,11 @@ const SONGS = {
 const SONG_LEN = {creepy:9.5, happy:9.5, energy:10, sad:10, calm:10.5, focus:10};
 /* REAL MUSIC (YouTube). start = second where the clip begins, dur = seconds to play. Tweak freely. */
 const CLIPS = {
-  creepy:{id:null, start:0, dur:12, title:'John Williams — Jaws (Main Title)'},
+  creepy:{id:null, start:0, dur:12, title:'Kyle Dixon & Michael Stein — Stranger Things (Theme)'},
   happy: {id:null, start:0, dur:12, title:'Katrina & The Waves — Walking on Sunshine'},
   energy:{id:null, start:0, dur:15, title:'Imagine Dragons — Believer'},
   sad:   {id:null, start:0, dur:15, title:'Lewis Capaldi — Someone You Loved'},
-  calm:  {id:null, start:0, dur:15, title:'Marconi Union — Weightless'},
+  calm:  {id:null, start:0, dur:15, title:'Cigarettes After Sex — Apocalypse'},
   joy:   {id:'y6Sxv-sUYtM', start:50, dur:15, title:'Pharrell Williams — Happy'},
   focus: {id:null, start:0, dur:15, title:'Hans Zimmer — Cornfield Chase (Interstellar)'}
 };
@@ -604,7 +605,7 @@ async function loadLocal() { try { const all = await idbAll(); for (const k in a
 if (IS_DECK) loadLocal();
 let audEl, audGain, audTm, audFade;
 /* Apple Music official 30-second previews (no ads, legal for apps). Used when no local file is set. */
-const APPLE = {creepy:1443483126, happy:723501674, energy:1411628233, sad:1452619054, calm:571977598, joy:863835363, focus:1533984393};
+const APPLE = {creepy:1143131699, happy:723501674, energy:1411628233, sad:1452619054, calm:1217977755, joy:863835363, focus:1533984393};
 const APPLE_CFG = {creepy:{start:0,dur:12}, happy:{start:0,dur:12}, energy:{start:0,dur:15}, sad:{start:0,dur:15}, calm:{start:0,dur:15}, joy:{start:0,dur:15}, focus:{start:0,dur:15}};
 const PREVIEW = {};
 if (IS_DECK) fetch('https://itunes.apple.com/lookup?id=' + Object.values(APPLE).join(',')).then(r => r.json()).then(j => {
@@ -902,7 +903,7 @@ function initDeck() {
   }
 
   /* --- music setup panel --- */
-  const SLOT = {creepy:'Sound A · scary (Jaws)', happy:'Sound B · happy (Walking on Sunshine)', energy:'Round 1 · Energy (Believer)', sad:'Round 2 · Sad (Someone You Loved)', calm:'Round 3 · Calm (Weightless)', joy:'Round 4 · Joy (Happy)', focus:'Round 5 · Focus (Cornfield Chase)'};
+  const SLOT = {creepy:'Sound A · scary (Stranger Things)', happy:'Sound B · happy (Walking on Sunshine)', energy:'Round 1 · Energy (Believer)', sad:'Round 2 · Sad (Someone You Loved)', calm:'Round 3 · Calm (Apocalypse)', joy:'Round 4 · Joy (Happy)', focus:'Round 5 · Focus (Cornfield Chase)'};
   const countMusic = () => { const n = Object.keys(SLOT).filter(k => LOCAL[k] || PREVIEW[k]).length; $('#musicCount').textContent = n + '/7'; $('#setupBtn').style.background = n === 7 ? 'var(--green)' : 'var(--lime)' };
   function drawSetup() {
     $('#setupRows').innerHTML = Object.keys(SLOT).map(k => `<div class="row" data-k="${k}" style="border:var(--b);padding:10px;background:${LOCAL[k] ? '#eaffd6' : 'var(--white)'};box-shadow:var(--sh-s)">
@@ -923,7 +924,14 @@ function initDeck() {
   $('#setupBtn').onclick = () => { drawSetup(); $('#setup').classList.remove('hidden') };
   $('#setupClose').onclick = () => { stopSong(); $('#setup').classList.add('hidden') };
   document.addEventListener('localready', countMusic);
-  const boot = () => { if (!$('#boot')) return; unlockAudio(); gsap.to('#boot', {yPercent: -100, duration: .7, ease: 'power3.in', onComplete: () => $('#boot').remove()}) };
+  const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const toggleFS = () => { try { if (fsOn()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else { const el = document.documentElement; const r = (el.requestFullscreen || el.webkitRequestFullscreen).call(el); if (r && r.catch) r.catch(() => {}) } } catch {} };
+  const fsLabel = () => { $('#fsBtn').textContent = fsOn() ? '✕ Exit fullscreen (F)' : '⛶ Fullscreen (F)' };
+  document.addEventListener('fullscreenchange', fsLabel); document.addEventListener('webkitfullscreenchange', fsLabel);
+  $('#fsBtn').onclick = toggleFS;
+  addEventListener('keydown', e => { if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey && !$('#boot') && $('#modal').classList.contains('hidden') && $('#setup').classList.contains('hidden')) toggleFS() });
+  const boot = () => { if (!$('#boot')) return; unlockAudio(); if (!fsOn()) toggleFS(); gsap.to('#boot', {yPercent: -100, duration: .7, ease: 'power3.in', onComplete: () => $('#boot').remove()}) };
   $('#boot').onclick = boot; addEventListener('keydown', function bk(e) { if ($('#boot')) { e.stopImmediatePropagation(); e.preventDefault(); boot() } removeEventListener('keydown', bk, true) }, true);
   addEventListener('soundblocked', () => { pub({t: 'warn', did, msg: 'Sound is blocked on the laptop — click the presentation once with the mouse.'});
     const tt = document.createElement('div'); tt.textContent = '🔇 Sound blocked — click anywhere on this screen once'; tt.style.cssText = 'position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:80;background:var(--coral);border:3px solid var(--ink);box-shadow:var(--sh-s);padding:12px 18px;font:700 18px var(--mono)';
