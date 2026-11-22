@@ -242,7 +242,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
           <button class="btn" id="hookB">▶ Sound B</button>
         </div>
         <div class="reveal" id="hookReveal">
-          <p class="mono" style="color:var(--lime);margin:0 0 12px">A = John Carpenter, Halloween · B = Katrina &amp; The Waves, Walking on Sunshine</p><h2 class="mid">Same room. Same people. 10 seconds.<br><span class="hl" style="color:var(--ink)">Completely different feelings.</span></h2>
+          <p class="mono" style="color:var(--lime);margin:0 0 12px">A = John Williams, Jaws · B = Katrina &amp; The Waves, Walking on Sunshine</p><h2 class="mid">Same room. Same people. 10 seconds.<br><span class="hl" style="color:var(--ink)">Completely different feelings.</span></h2>
         </div>
       </div>
     </section>
@@ -364,7 +364,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
         </div>
         <div class="row" style="justify-content:space-between;margin-top:10px">
           <h2 class="mid">Thank you! <span class="hl p">Questions?</span></h2>
-          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · music: Carpenter, Katrina &amp; The Waves, Imagine Dragons, Lewis Capaldi, Marconi Union, Pharrell, Kupla · 30-sec previews via Apple Music</span>
+          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · music: John Williams, Katrina &amp; The Waves, Imagine Dragons, Lewis Capaldi, Marconi Union, Pharrell, Hans Zimmer · 30-sec previews via Apple Music</span>
         </div>
       </div>
     </section>
@@ -463,7 +463,7 @@ const ROUNDS = [
   {key:'joy', bar:'pink', img:'1454486837617-ce8e1ba5ebfe', cr:'dre0316 / Unsplash',
    why:'Major key, handclaps, a bouncy rhythm and a chorus everyone can sing. Bright major-key music is the fastest way to lift a whole room.'},
   {key:'focus', bar:'lime', img:'1741699428220-65f37f3fbbcb', cr:'zoshuacolah / Unsplash',
-   why:'Steady, repetitive, no lyrics. Lyrics compete with the words you\'re reading; a predictable loop keeps you in the zone without grabbing attention.'}
+   why:'No lyrics, one steady repeating pattern that slowly builds. Lyrics compete with the words you\'re reading — a predictable loop keeps you in the zone. That\'s why film scores are top study playlists.'}
 ];
 const CHEAT = [
   {t:'Stressed', bar:'blue', img:'1718382341267-aef8a9e4ecef', p:'Slow, 60–80 BPM, no lyrics. Breathe out longer than in.', tag:'→ CALM'},
@@ -573,13 +573,13 @@ const SONGS = {
 const SONG_LEN = {creepy:9.5, happy:9.5, energy:10, sad:10, calm:10.5, focus:10};
 /* REAL MUSIC (YouTube). start = second where the clip begins, dur = seconds to play. Tweak freely. */
 const CLIPS = {
-  creepy:{id:'mIhCdldRE1U', start:0,  dur:12, title:'John Carpenter — Halloween Theme'},
+  creepy:{id:null, start:0, dur:12, title:'John Williams — Jaws (Main Title)'},
   happy: {id:null, start:0, dur:12, title:'Katrina & The Waves — Walking on Sunshine'},
   energy:{id:null, start:0, dur:15, title:'Imagine Dragons — Believer'},
   sad:   {id:null, start:0, dur:15, title:'Lewis Capaldi — Someone You Loved'},
   calm:  {id:null, start:0, dur:15, title:'Marconi Union — Weightless'},
   joy:   {id:'y6Sxv-sUYtM', start:50, dur:15, title:'Pharrell Williams — Happy'},
-  focus: {id:'lTRiuFIWV54', start:30, dur:15, title:'Kupla — Owls of the Night (Lofi Girl)'}
+  focus: {id:null, start:0, dur:15, title:'Hans Zimmer — Cornfield Chase (Interstellar)'}
 };
 let YT_P = null, ytReady = false, ytTm = null, ytFade = null;
 window.onYouTubeIframeAPIReady = () => {
@@ -598,7 +598,7 @@ async function loadLocal() { try { const all = await idbAll(); for (const k in a
 if (IS_DECK) loadLocal();
 let audEl, audGain, audTm, audFade;
 /* Apple Music official 30-second previews (no ads, legal for apps). Used when no local file is set. */
-const APPLE = {creepy:1107715429, happy:723501674, energy:1411628233, sad:1452619054, calm:571977598, joy:863835363, focus:6787937401};
+const APPLE = {creepy:1443483126, happy:723501674, energy:1411628233, sad:1452619054, calm:571977598, joy:863835363, focus:1533984393};
 const APPLE_CFG = {creepy:{start:0,dur:12}, happy:{start:0,dur:12}, energy:{start:0,dur:15}, sad:{start:0,dur:15}, calm:{start:0,dur:15}, joy:{start:0,dur:15}, focus:{start:0,dur:15}};
 const PREVIEW = {};
 if (IS_DECK) fetch('https://itunes.apple.com/lookup?id=' + Object.values(APPLE).join(',')).then(r => r.json()).then(j => {
@@ -881,7 +881,7 @@ function initDeck() {
   }
 
   /* --- music setup panel --- */
-  const SLOT = {creepy:'Sound A · scary (Halloween)', happy:'Sound B · happy (Walking on Sunshine)', energy:'Round 1 · Energy (Believer)', sad:'Round 2 · Sad (Someone You Loved)', calm:'Round 3 · Calm (Weightless)', joy:'Round 4 · Joy (Happy)', focus:'Round 5 · Focus (lofi)'};
+  const SLOT = {creepy:'Sound A · scary (Jaws)', happy:'Sound B · happy (Walking on Sunshine)', energy:'Round 1 · Energy (Believer)', sad:'Round 2 · Sad (Someone You Loved)', calm:'Round 3 · Calm (Weightless)', joy:'Round 4 · Joy (Happy)', focus:'Round 5 · Focus (Cornfield Chase)'};
   const countMusic = () => { const n = Object.keys(SLOT).filter(k => LOCAL[k] || PREVIEW[k]).length; $('#musicCount').textContent = n + '/7'; $('#setupBtn').style.background = n === 7 ? 'var(--green)' : 'var(--lime)' };
   function drawSetup() {
     $('#setupRows').innerHTML = Object.keys(SLOT).map(k => `<div class="row" data-k="${k}" style="border:var(--b);padding:10px;background:${LOCAL[k] ? '#eaffd6' : 'var(--white)'};box-shadow:var(--sh-s)">
