@@ -421,10 +421,16 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
         <div class="row" style="justify-content:space-between"><b class="mono" id="hStage">waiting for the laptop…</b><span class="mono" id="hLive">connecting…</span></div>
         <div class="mono" id="hStatus" style="border:2.5px solid var(--ink);padding:8px 10px;background:var(--yellow)">Open the presentation on the laptop first.</div>
         <div class="nav"><button class="btn white" id="hPrev">◀ Back</button><button class="btn" id="hNext">Next ▶</button></div>
-        <button class="btn purple" id="hAction">▶ Play / Reveal</button>
+        <div class="nav"><button class="btn purple" id="hAction">▶ Play / Reveal</button><button class="btn white" id="hStop">■ Stop music</button></div>
+        <div class="row mono" style="justify-content:space-between;font-size:15px"><span>👥 <b id="hJoined">0</b> joined</span><span>🗳 <b id="hVotes">0</b> votes here</span><button class="btn white" id="hTimer" style="min-height:40px;padding:6px 12px;font-size:15px">⏱ 00:00</button></div>
       </div></div>
+    <div class="win"><div class="bar blue"><span class="t">jump_to_slide.exe</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
+      <div class="body"><div id="hJump" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px"><p class="mono">waiting…</p></div></div></div>
     <div class="row" style="justify-content:space-between"><h2 class="mid">Songs</h2><button class="btn blue" id="hAll">Show all</button></div>
     <div id="hList" class="stack"><p class="mono">No songs yet.</p></div>
+    <div class="win"><div class="bar orange"><span class="t">danger_zone.exe</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
+      <div class="body stack"><p class="mono" style="margin:0;font-size:13px">After rehearsing: wipe every vote, mood and song. The slide stays where it is. Tap twice to confirm.</p>
+        <button class="btn pink" id="hReset">🧹 Clear all votes &amp; songs</button></div></div>
   </div>
 </div>
 
@@ -688,9 +694,10 @@ function initDeck() {
   try { const q = qrcode(0, 'M'); q.addData(joinUrl); q.make(); $('#qr1').innerHTML = q.createSvgTag({cellSize: 8, margin: 1, scalable: true}) } catch { $('#qr1').textContent = 'QR library failed — show the link' }
 
   /* --- state --- */
-  let sid = store.get('mm_sid', null);
+  let sid = store.get('mm_sid', null);   // room id; votes & songs belong to a room
   if (!sid) { sid = Math.random().toString(36).slice(2, 8); store.set('mm_sid', sid) }
   const S = {joined: new Set(), before: {}, after: {}, guess: ROUNDS.map(() => ({})), tracks: {}, shown: new Set()};
+  const SHORT = el => (el.id || 'round_' + (+el.dataset.round + 1)).replace('s-', '');
   const links = store.get('mm_links', {});
   let cur = 0;
   const did = Math.random().toString(36).slice(2, 8); let act = Date.now(), standby = false, lastOther = 0;   // only the most recently used screen is in charge
@@ -712,10 +719,21 @@ function initDeck() {
   function broadcastStage() {
     if (standby) return; const s = slides[cur]; pub({t: 'stage', sid, did, act, stage: s.dataset.stage, round: +(s.dataset.round || 0), at: Date.now()});
   }
-  let stT; function sendState() { if (standby) return; clearTimeout(stT); stT = setTimeout(() => {   // compact snapshot for the host remote
-    const ids = Object.keys(S.tracks).slice(-35);
-    pub({t: 'state', sid, did, act, at: Date.now(), idx: cur, total: slides.length, name: $('#slideName').textContent, joined: S.joined.size,
-         tracks: ids.map(id => [id, S.tracks[id].text.slice(0, 50)]), shown: ids.filter(id => S.shown.has(id))}) }, 350) }
+  let stT = null; function sendState() { if (standby || stT) return; stT = setTimeout(() => { stT = null;   // compact snapshot for the host remote (throttled)
+    const ids = Object.keys(S.tracks).slice(-35), sl = slides[cur], r = sl.classList.contains('guess') ? +sl.dataset.round : -1;
+    const votes = r >= 0 ? Object.keys(S.guess[r]).length : sl.id === 's-after' ? Object.keys(S.after).length : Object.keys(S.before).length;
+    pub({t: 'state', sid, did, act, at: Date.now(), idx: cur, total: slides.length, name: $('#slideName').textContent, joined: S.joined.size, votes,
+         playing: !!playing, names: slides.map(SHORT), tracks: ids.map(id => [id, S.tracks[id].text.slice(0, 50)]), shown: ids.filter(id => S.shown.has(id))}) }, 350) }
+  function resetRoom() {   // fresh room: clears every vote and song, keeps the slide & unlocked sound
+    sid = Math.random().toString(36).slice(2, 8); store.set('mm_sid', sid);
+    S.joined.clear(); S.before = {}; S.after = {}; S.guess = ROUNDS.map(() => ({})); S.tracks = {}; S.shown.clear();
+    $$('#wall .sticker').forEach(e => e.remove()); renderWall(); $('#cJoined').textContent = 0; $('#cTracks').textContent = 0;
+    renderMood($('#mbBefore'), S.before); renderMood($('#mbAfter'), S.after); S.guess.forEach((_, i) => renderGuess(i));
+    $$('.explain').forEach(e => e.style.opacity = 0); $$('.vrow').forEach(r => r.classList.remove('win-row', 'dim')); $('#resultBox').style.visibility = 'hidden';
+    $('#liveTxt').textContent = 'LIVE · room ' + sid; broadcastStage(); sendState();
+    const tt = document.createElement('div'); tt.textContent = '🧹 Room cleared — fresh start'; tt.style.cssText = 'position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:80;background:var(--green);border:3px solid var(--ink);box-shadow:var(--sh-s);padding:12px 18px;font:700 18px var(--mono)';
+    document.body.appendChild(tt); setTimeout(() => tt.remove(), 2500);
+  }
   function onEnter(s) {
     if (s.id === 's-wall') renderWall(true);
     if (s.id === 's-after') { $('#resultBox').style.visibility = 'hidden' }
@@ -741,7 +759,7 @@ function initDeck() {
     else if (e.key.toLowerCase() === 'r') { const s = slides[cur]; if (s.classList.contains('guess')) reveal(); else if (s.id === 's-after') showResult() }
     else if (e.key.toLowerCase() === 'a' && !e.shiftKey) { Object.keys(S.tracks).forEach(id => S.shown.add(id)); renderWall(); sendState() }
     else if (e.key.toLowerCase() === 'd') demo();
-    else if (e.code === 'KeyN' && e.shiftKey) { store.set('mm_sid', null); location.reload() }
+    else if (e.code === 'KeyN' && e.shiftKey) resetRoom();
   });
 
   /* --- hook --- */
@@ -854,15 +872,18 @@ function initDeck() {
   const loadT = Date.now() / 1000 - 2;
   function onMsg(m, time) {
     if ((m.t === 'stage' || m.t === 'state') && m.did && m.did !== did && (m.act || 0) > act && time >= loadT - 60) { lastOther = Date.now(); if (!standby) setStandby(true) }   // another screen took over
-    if ((m.t === 'nav' || m.t === 'modall' || m.t === 'sync') && time < loadT) return;
+    if (['nav', 'modall', 'sync', 'reset', 'goto', 'stop'].includes(m.t) && time < loadT) return;
     if (m.t === 'sync') { sendState(); return }
-    if (m.t === 'nav' && (standby || (m.did && m.did !== did))) return;
+    if (['nav', 'reset', 'goto', 'stop'].includes(m.t) && (standby || (m.did && m.did !== did))) return;
+    if (m.t === 'reset') { resetRoom(); return }
+    if (m.t === 'goto') { go(+m.idx); sendState(); return }
+    if (m.t === 'stop') { stopSong(); $$('[data-play]').forEach(b => { b.textContent = '▶'; b.classList.remove('on') }); sendState(); return }
     if (m.t === 'nav') { if (m.dir === 1) go(cur + 1); else if (m.dir === -1) go(cur - 1); else action(); sendState(); return }   // always confirm to the remote
     if (m.t === 'modall' && m.sid === sid) { Object.keys(S.tracks).forEach(id => S.shown.add(id)); renderWall(); sendState(); return }
     if (m.sid !== sid) return;
     if (m.cid) S.joined.add(m.cid);
-    if (m.t === 'mood') { S[m.phase === 'after' ? 'after' : 'before'][m.cid] = m.v; renderMood($('#mbBefore'), S.before); renderMood($('#mbAfter'), S.after) }
-    if (m.t === 'guess' && S.guess[m.round]) { S.guess[m.round][m.cid] = m.v; renderGuess(m.round) }
+    if (m.t === 'mood') { S[m.phase === 'after' ? 'after' : 'before'][m.cid] = m.v; renderMood($('#mbBefore'), S.before); renderMood($('#mbAfter'), S.after); if (time >= loadT) sendState() }
+    if (m.t === 'guess' && S.guess[m.round]) { S.guess[m.round][m.cid] = m.v; renderGuess(m.round); if (time >= loadT) sendState() }
     if (m.t === 'track' && m.text) { S.tracks[m.id] = {text: String(m.text).slice(0, 60), cid: m.cid}; $('#cTracks').textContent = Object.keys(S.tracks).length;
       gsap.fromTo('#cTracks', {scale: 1.4}, {scale: 1, duration: .4, ease: 'back.out(3)'}); if (time >= loadT) sendState() }
     if (m.t === 'mod') { if (m.show) S.shown.add(m.id); else S.shown.delete(m.id); if (slides[cur].id === 's-wall') renderWall(); if (time >= loadT) sendState() }
@@ -981,12 +1002,22 @@ function initHost() {
   $('#hPrev').onclick = () => sendH({t: 'nav', did, dir: -1}, 'Going back');
   $('#hNext').onclick = () => sendH({t: 'nav', did, dir: 1}, 'Next slide');
   $('#hAction').onclick = () => sendH({t: 'nav', did, dir: 0}, 'Play / reveal');
+  $('#hStop').onclick = () => sendH({t: 'stop', did}, 'Stopping music');
+  let armed = 0; $('#hReset').onclick = () => { const b = $('#hReset');
+    if (Date.now() - armed > 4000) { armed = Date.now(); b.textContent = '⚠ Tap again to clear EVERYTHING'; setTimeout(() => { if (Date.now() - armed >= 4000) b.innerHTML = '🧹 Clear all votes &amp; songs' }, 4100); return }
+    armed = 0; b.innerHTML = '🧹 Clear all votes &amp; songs'; sendH({t: 'reset', did}, 'Clearing the room') };
+  $('#hJump').onclick = e => { const b = e.target.closest('[data-i]'); if (b) sendH({t: 'goto', did, idx: +b.dataset.i}, 'Jumping to ' + b.textContent) };
+  let t0 = Date.now(); $('#hTimer').onclick = () => t0 = Date.now();
+  setInterval(() => { const d = Math.floor((Date.now() - t0) / 1000); $('#hTimer').textContent = '⏱ ' + String(Math.floor(d / 60)).padStart(2, '0') + ':' + String(d % 60).padStart(2, '0') }, 1000);
+  let jumpSig = '';
   $('#hAll').onclick = () => { if (!sid) return; tracks.forEach(([id]) => shown.add(id)); draw(); sendH({t: 'modall', sid}, 'Showing all songs') };
   sub(m => {
     if (m.t === 'warn' && (!did || m.did === did)) { clearTimeout(waitT); status('⚠ ' + m.msg, 'var(--coral)'); return }
     if (m.t !== 'state') return; const key = (m.act || 0) * 1e3 + (m.at % 1e6) / 1e6; if (key < lastAt && Date.now() - lastSeen < 45000) return; lastAt = key; lastSeen = Date.now();
     sid = m.sid; did = m.did; tracks = m.tracks || []; shown = new Set(m.shown || []);
     $('#hStage').textContent = `slide ${m.idx + 1}/${m.total} · ${m.name} · ${m.joined} in room`;
+    $('#hJoined').textContent = m.joined || 0; $('#hVotes').textContent = m.votes || 0;
+    if (m.names) { const js = m.names.join() + m.idx; if (js !== jumpSig) { jumpSig = js; $('#hJump').innerHTML = m.names.map((n, i) => `<button class="btn ${i === m.idx ? '' : 'white'}" data-i="${i}" style="min-height:44px;padding:6px;font-size:12px;text-transform:none">${i + 1}. ${esc(n.replace('round_', 'R'))}</button>`).join('') } }
     clearTimeout(waitT); status('✓ In sync with the laptop', 'var(--green)'); draw();
   }, ok => { $('#hLive').textContent = ok ? '● connected' : 'reconnecting…'; if (ok) pub({t: 'sync'}) }, '1m');
 }
