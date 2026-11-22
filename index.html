@@ -681,7 +681,7 @@ function initDeck() {
   const S = {joined: new Set(), before: {}, after: {}, guess: ROUNDS.map(() => ({})), tracks: {}, shown: new Set()};
   const links = store.get('mm_links', {});
   let cur = 0;
-  const did = Math.random().toString(36).slice(2, 8); let act = Date.now(), standby = false;   // only the most recently used screen is in charge
+  const did = Math.random().toString(36).slice(2, 8); let act = Date.now(), standby = false, lastOther = 0;   // only the most recently used screen is in charge
 
   /* --- navigation --- */
   function go(n, anim = true) {
@@ -841,11 +841,11 @@ function initDeck() {
   /* --- incoming messages --- */
   const loadT = Date.now() / 1000 - 2;
   function onMsg(m, time) {
-    if ((m.t === 'stage' || m.t === 'state') && m.did && m.did !== did && (m.act || 0) > act && !standby) setStandby(true);   // another screen took over
+    if ((m.t === 'stage' || m.t === 'state') && m.did && m.did !== did && (m.act || 0) > act && time >= loadT - 60) { lastOther = Date.now(); if (!standby) setStandby(true) }   // another screen took over
     if ((m.t === 'nav' || m.t === 'modall' || m.t === 'sync') && time < loadT) return;
     if (m.t === 'sync') { sendState(); return }
     if (m.t === 'nav' && (standby || (m.did && m.did !== did))) return;
-    if (m.t === 'nav') { if (m.dir === 1) go(cur + 1); else if (m.dir === -1) go(cur - 1); else action(); return }
+    if (m.t === 'nav') { if (m.dir === 1) go(cur + 1); else if (m.dir === -1) go(cur - 1); else action(); sendState(); return }   // always confirm to the remote
     if (m.t === 'modall' && m.sid === sid) { Object.keys(S.tracks).forEach(id => S.shown.add(id)); renderWall(); sendState(); return }
     if (m.sid !== sid) return;
     if (m.cid) S.joined.add(m.cid);
@@ -891,13 +891,13 @@ function initDeck() {
   $('#setupClose').onclick = () => { stopSong(); $('#setup').classList.add('hidden') };
   document.addEventListener('localready', countMusic);
   slides[0].classList.add('active'); go(0, false); $$('#dots b')[0].classList.add('on');
-  setInterval(broadcastStage, 20000); // keeps late joiners in sync
+  setInterval(() => { if (standby && Date.now() - lastOther > 45000) takeOver(); else { broadcastStage(); sendState() } }, 20000);   // heartbeat; a standby screen takes over if the active one vanished // keeps late joiners in sync
 }
 
 /* ================= PHONE ================= */
 function initPhone() {
   let cid = store.get('mm_cid', null); if (!cid) { cid = Math.random().toString(36).slice(2, 10); store.set('mm_cid', cid) }
-  let st = {stage: 'before', sid: null, round: 0, at: 0}, lastAt = 0; const queue = [];
+  let st = {stage: 'before', sid: null, round: 0, at: 0}, lastAt = 0, lastSeen = 0; const queue = [];
   const send = o => { if (st.sid) pub(Object.assign({sid: st.sid}, o)); else queue.push(o) };
   const mine = store.get('mm_mine', {}); const save = () => store.set('mm_mine', mine);
   const V = $('#pView');
@@ -937,7 +937,7 @@ function initPhone() {
     if (window.gsap) gsap.from('#pView .win', {y: 30, opacity: 0, duration: .45, stagger: .08, ease: 'back.out(2)', clearProps: 'transform,opacity'});
   }
   function onMsg(m, time) {
-    if (m.t === 'stage') { const key = (m.act || 0) * 1e3 + (m.at % 1e6) / 1e6; if (key < lastAt) return; lastAt = key;
+    if (m.t === 'stage') { const key = (m.act || 0) * 1e3 + (m.at % 1e6) / 1e6; if (key < lastAt && Date.now() - lastSeen < 45000) return; lastAt = key; lastSeen = Date.now();
       if (!st.sid) { for (const key of Object.keys(mine)) if (key.startsWith('null:')) mine[m.sid + key.slice(4)] = mine[key]; save() }   // keep answers given before connecting
       const ch = st.stage !== m.stage || st.round !== m.round || (st.sid && st.sid !== m.sid); st = m;
       while (queue.length) send(queue.shift());
@@ -950,7 +950,7 @@ function initPhone() {
 
 /* ================= HOST REMOTE ================= */
 function initHost() {
-  let sid = null, did = null, tracks = [], shown = new Set(), lastAt = 0, sig = '', waitT;
+  let sid = null, did = null, tracks = [], shown = new Set(), lastAt = 0, lastSeen = 0, sig = '', waitT;
   const status = (t, c) => { const el = $('#hStatus'); el.textContent = t; el.style.background = c || 'var(--yellow)' };
   const draw = () => {                                   // only rebuild when something actually changed → taps never get lost
     const nsig = JSON.stringify([tracks, [...shown]]); if (nsig === sig) return; sig = nsig;
@@ -966,7 +966,7 @@ function initHost() {
   $('#hAction').onclick = () => sendH({t: 'nav', did, dir: 0}, 'Play / reveal');
   $('#hAll').onclick = () => { if (!sid) return; tracks.forEach(([id]) => shown.add(id)); draw(); sendH({t: 'modall', sid}, 'Showing all songs') };
   sub(m => {
-    if (m.t !== 'state') return; const key = (m.act || 0) * 1e3 + (m.at % 1e6) / 1e6; if (key < lastAt) return; lastAt = key;
+    if (m.t !== 'state') return; const key = (m.act || 0) * 1e3 + (m.at % 1e6) / 1e6; if (key < lastAt && Date.now() - lastSeen < 45000) return; lastAt = key; lastSeen = Date.now();
     sid = m.sid; did = m.did; tracks = m.tracks || []; shown = new Set(m.shown || []);
     $('#hStage').textContent = `slide ${m.idx + 1}/${m.total} · ${m.name} · ${m.joined} in room`;
     clearTimeout(waitT); status('✓ In sync with the laptop', 'var(--green)'); draw();
