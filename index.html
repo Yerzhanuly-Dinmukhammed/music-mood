@@ -221,6 +221,13 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
 
 <!-- ============================ DECK (projector) ============================ -->
 <div id="deck" class="hidden">
+  <button id="boot" style="position:fixed;inset:0;z-index:70;border:0;cursor:pointer;background:var(--ink);color:var(--bg);display:grid;place-items:center;text-align:center;padding:24px">
+    <span style="display:grid;gap:22px;justify-items:center">
+      <span class="mono" style="color:var(--lime);font-size:clamp(14px,1.3vw,20px)">C:\&gt; music_mood.exe — ready</span>
+      <span style="font:400 clamp(44px,7vw,120px)/1 var(--display)">▶ START THE SHOW</span>
+      <span class="mono" style="font-size:clamp(13px,1.1vw,18px);opacity:.75">click once (or press any key) — this lets the browser play music</span>
+    </span>
+  </button>
   <button id="standbyBar" class="hidden" style="position:fixed;inset:auto 0 52px 0;z-index:40;border:0;border-top:3px solid var(--ink);background:var(--orange);font:700 16px/1.3 var(--mono);padding:12px;cursor:pointer">⏸ STANDBY — another screen is presenting. Click here or press → to take control on THIS screen.</button>
   <div class="ticker"><div class="track" id="tickerTrack"></div></div>
   <div id="stage">
@@ -598,11 +605,16 @@ if (IS_DECK) fetch('https://itunes.apple.com/lookup?id=' + Object.values(APPLE).
   for (const k in APPLE) { const t = j.results.find(x => x.trackId === APPLE[k]); if (t && t.previewUrl) { PREVIEW[k] = t.previewUrl; const a = new Audio(); a.preload = 'auto'; a.crossOrigin = 'anonymous'; a.src = t.previewUrl } }
   document.dispatchEvent(new Event('localready'));
 }).catch(() => {});
+function ensureAudEl() { audio(); if (!audEl) { audEl = new Audio(); audEl.preload = 'auto'; audEl.crossOrigin = 'anonymous'; const src = AC.createMediaElementSource(audEl); audGain = AC.createGain(); src.connect(audGain); audGain.connect(master) } }
+function unlockAudio() {   // must run inside a real click/keypress on the laptop: browsers block sound until then
+  ensureAudEl(); try { AC.resume() } catch {}
+  audEl.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='; audEl.play().then(() => audEl.pause()).catch(() => {});
+}
 function playLocal(name, onEnd) {
   audio(); stopSong(); const isFile = !!LOCAL[name], cfg = isFile ? LSET[name] : APPLE_CFG[name];
   if (!audEl) { audEl = new Audio(); audEl.preload = 'auto'; audEl.crossOrigin = 'anonymous'; const src = AC.createMediaElementSource(audEl); audGain = AC.createGain(); src.connect(audGain); audGain.connect(master) }
   audEl.src = isFile ? LOCAL[name] : PREVIEW[name]; audGain.gain.cancelScheduledValues(AC.currentTime); audGain.gain.setValueAtTime(1, AC.currentTime);
-  const go = () => { audEl.currentTime = +cfg.start || 0; audEl.play().catch(() => {}) };
+  const go = () => { audEl.currentTime = +cfg.start || 0; audEl.play().catch(err => { if (err && err.name === 'NotAllowedError') window.dispatchEvent(new Event('soundblocked')) }) };
   audEl.readyState >= 1 ? go() : audEl.addEventListener('loadedmetadata', go, {once: true});
   const d = (+cfg.dur || 15) * 1000;
   audFade = setTimeout(() => audGain.gain.setTargetAtTime(0, AC.currentTime, .5), d - 1800);
@@ -734,7 +746,7 @@ function initDeck() {
 
   /* --- hook --- */
   let heard = 0;
-  const hookPlay = (btn, song) => { btn.classList.add('on'); gsap.to('#s-hook', {backgroundColor: song === 'creepy' ? '#120414' : '#1d1400', duration: .8});
+  const hookPlay = (btn, song) => { const oth = btn.id === 'hookA' ? $('#hookB') : $('#hookA'); if (/playing/.test(oth.textContent)) { oth.innerHTML = oth.id === 'hookA' ? '▶ Sound A' : '▶ Sound B'; oth.classList.remove('on') } btn.classList.add('on'); gsap.to('#s-hook', {backgroundColor: song === 'creepy' ? '#120414' : '#1d1400', duration: .8});
     btn.innerHTML = `<span class="eqmini"><i></i><i></i><i></i><i></i></span> playing…`;
     playClip(song, () => { btn.innerHTML = song === 'creepy' ? '✓ Sound A' : '✓ Sound B'; if (++heard >= 2) { gsap.to('#hookReveal', {opacity: 1, y: 0, duration: .6, ease: 'back.out(2)'}); gsap.to('#s-hook', {backgroundColor: '#0b0b0b', duration: .8}) } }); };
   $('#hookA').onclick = () => hookPlay($('#hookA'), 'creepy');
@@ -890,6 +902,11 @@ function initDeck() {
   $('#setupBtn').onclick = () => { drawSetup(); $('#setup').classList.remove('hidden') };
   $('#setupClose').onclick = () => { stopSong(); $('#setup').classList.add('hidden') };
   document.addEventListener('localready', countMusic);
+  const boot = () => { if (!$('#boot')) return; unlockAudio(); gsap.to('#boot', {yPercent: -100, duration: .7, ease: 'power3.in', onComplete: () => $('#boot').remove()}) };
+  $('#boot').onclick = boot; addEventListener('keydown', function bk(e) { if ($('#boot')) { e.stopImmediatePropagation(); e.preventDefault(); boot() } removeEventListener('keydown', bk, true) }, true);
+  addEventListener('soundblocked', () => { pub({t: 'warn', did, msg: 'Sound is blocked on the laptop — click the presentation once with the mouse.'});
+    const tt = document.createElement('div'); tt.textContent = '🔇 Sound blocked — click anywhere on this screen once'; tt.style.cssText = 'position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:80;background:var(--coral);border:3px solid var(--ink);box-shadow:var(--sh-s);padding:12px 18px;font:700 18px var(--mono)';
+    document.body.appendChild(tt); const off = () => { unlockAudio(); tt.remove(); removeEventListener('pointerdown', off) }; addEventListener('pointerdown', off) });
   slides[0].classList.add('active'); go(0, false); $$('#dots b')[0].classList.add('on');
   setInterval(() => { if (standby && Date.now() - lastOther > 45000) takeOver(); else { broadcastStage(); sendState() } }, 20000);   // heartbeat; a standby screen takes over if the active one vanished // keeps late joiners in sync
 }
@@ -966,6 +983,7 @@ function initHost() {
   $('#hAction').onclick = () => sendH({t: 'nav', did, dir: 0}, 'Play / reveal');
   $('#hAll').onclick = () => { if (!sid) return; tracks.forEach(([id]) => shown.add(id)); draw(); sendH({t: 'modall', sid}, 'Showing all songs') };
   sub(m => {
+    if (m.t === 'warn' && (!did || m.did === did)) { clearTimeout(waitT); status('⚠ ' + m.msg, 'var(--coral)'); return }
     if (m.t !== 'state') return; const key = (m.act || 0) * 1e3 + (m.at % 1e6) / 1e6; if (key < lastAt && Date.now() - lastSeen < 45000) return; lastAt = key; lastSeen = Date.now();
     sid = m.sid; did = m.did; tracks = m.tracks || []; shown = new Set(m.shown || []);
     $('#hStage').textContent = `slide ${m.idx + 1}/${m.total} · ${m.name} · ${m.joined} in room`;
