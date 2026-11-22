@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://ntfy.sh">
+<link rel="preconnect" href="https://www.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /*
@@ -420,6 +421,8 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
 </div>
 
 <div id="ytWrap" style="position:fixed;right:0;bottom:0;width:320px;height:180px;opacity:0;pointer-events:none;z-index:-1"><div id="ytHidden"></div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
@@ -461,9 +464,26 @@ const CHEAT = [
   {t:'Studying', bar:'lime', img:'1617300040847-369dee9d35f1', p:'Instrumental or lo-fi, steady. Lyrics fight with reading.', tag:'→ FOCUS'}
 ];
 
-/* ================= realtime (ntfy.sh, no login) ================= */
-const pub = obj => fetch(NTFY, {method:'POST', body: JSON.stringify(obj)}).catch(() => {});
+/* ================= realtime: Firebase Realtime Database (primary) · ntfy.sh (fallback) ================= */
+const FIREBASE = null;   // ← paste the firebaseConfig object here
+let fbDb = null, fbOff = 0;
+function fb() {
+  if (!FIREBASE || !window.firebase) return false;
+  if (!fbDb) { firebase.initializeApp(FIREBASE); fbDb = firebase.database(); fbDb.ref('.info/serverTimeOffset').on('value', x => fbOff = x.val() || 0) }
+  return true;
+}
+const sinceMs = s => { const m = String(s).match(/^(\d+)([smh])$/); return m ? +m[1] * {s: 1e3, m: 6e4, h: 36e5}[m[2]] : 36e5 };
+const pub = obj => {
+  if (fb()) return fbDb.ref('msgs').push({m: JSON.stringify(obj), ts: firebase.database.ServerValue.TIMESTAMP}).catch(() => {});
+  return fetch(NTFY, {method:'POST', body: JSON.stringify(obj)}).catch(() => {});
+};
 function sub(onMsg, onState, since = '3h') {
+  if (fb()) {
+    fbDb.ref('msgs').orderByChild('ts').startAt(Date.now() + fbOff - sinceMs(since))
+      .on('child_added', x => { const v = x.val(); try { onMsg(JSON.parse(v.m), (v.ts || Date.now()) / 1000) } catch {} });
+    fbDb.ref('.info/connected').on('value', x => onState(!!x.val()));
+    return;
+  }
   let es, retry = 0;
   const open = () => {
     es = new EventSource(`${NTFY}/sse?since=${since}`);
