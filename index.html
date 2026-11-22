@@ -83,6 +83,17 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;line-height:1.02;te
 .grid2{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(20px,3vw,56px);height:100%;align-items:center}
 .stack{display:flex;flex-direction:column;gap:clamp(12px,1.6vw,26px)}
 
+.qrsticker{position:absolute;right:clamp(14px,2vw,34px);bottom:clamp(10px,1.6vh,22px);z-index:5;background:var(--yellow);border:var(--b);box-shadow:var(--sh);padding:8px 8px 6px;transform:rotate(3deg);display:grid;gap:4px;justify-items:center;width:clamp(110px,9vw,150px)}
+.qrsticker #qr2{background:var(--white);border:2.5px solid var(--ink);width:100%;aspect-ratio:1;padding:3px}.qrsticker svg{width:100%;height:100%;display:block}
+.qrsticker span{font:700 11px/1.2 var(--mono);text-align:center}
+/* live reactions + confetti */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:45;overflow:hidden}
+#fx .fl{position:absolute;bottom:-90px;font-size:clamp(40px,4vw,70px);line-height:1;filter:drop-shadow(3px 3px 0 rgba(0,0,0,.85))}
+#fx .cf{position:absolute;width:14px;height:14px;border:2.5px solid var(--ink)}
+#phone .react{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--white);border-top:var(--b);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+#phone .react button{min-height:56px;font-size:28px;border:var(--b);background:var(--bg);box-shadow:3px 3px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+#phone .react button:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+#phone .wrap{padding-bottom:100px}
 /* floating doodles */
 .float{position:absolute;pointer-events:none;z-index:0}
 .slide>*{position:relative;z-index:1}
@@ -220,6 +231,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
 <body>
 
 <!-- ============================ DECK (projector) ============================ -->
+<div id="fx"></div>
 <div id="deck" class="hidden">
   <button id="boot" style="position:fixed;inset:0;z-index:70;border:0;cursor:pointer;background:var(--ink);color:var(--bg);display:grid;place-items:center;text-align:center;padding:24px">
     <span style="display:grid;gap:22px;justify-items:center">
@@ -309,6 +321,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
             <div class="body" style="padding:0"><div class="photo" data-img="1790093848724-87895c4098e9" data-cr="cherstve_pechivo / Unsplash" style="height:min(22vh,220px);border:0;box-shadow:none"></div></div></div>
         </div>
       </div>
+      <div class="qrsticker"><div id="qr2"></div><span>late? scan to join ↑</span></div>
     </section>
 
     <!-- 5-8. GUESS ROUNDS (generated) -->
@@ -412,6 +425,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
     <div class="head"><span class="tag" style="background:var(--purple)">music_mood.exe</span><span class="live" id="pLive"><span id="pLiveTxt">connecting…</span></span></div>
     <div id="pView"></div>
   </div>
+  <div class="react" id="pReact"><button>🔥</button><button>😂</button><button>😍</button><button>👏</button><button>🤯</button></div>
 </div>
 
 <!-- ============================ HOST ============================ -->
@@ -692,7 +706,7 @@ function initDeck() {
   $('#dots').innerHTML = slides.map(() => '<b></b>').join('');
   const joinUrl = location.href.split('#')[0] + '#join';
   ['#url1'].forEach(s => $(s).textContent = joinUrl.replace(/^https?:\/\//, ''));
-  try { const q = qrcode(0, 'M'); q.addData(joinUrl); q.make(); $('#qr1').innerHTML = q.createSvgTag({cellSize: 8, margin: 1, scalable: true}) } catch { $('#qr1').textContent = 'QR library failed — show the link' }
+  try { const q = qrcode(0, 'M'); q.addData(joinUrl); q.make(); $('#qr1').innerHTML = q.createSvgTag({cellSize: 8, margin: 1, scalable: true}); $('#qr2').innerHTML = q.createSvgTag({cellSize: 4, margin: 0, scalable: true}) } catch { $('#qr1').textContent = 'QR library failed — show the link' }
 
   /* --- state --- */
   let sid = store.get('mm_sid', null);   // room id; votes & songs belong to a room
@@ -789,7 +803,7 @@ function initDeck() {
     const s = slides[cur]; if (!s.classList.contains('guess')) return; const r = ROUNDS[+s.dataset.round];
     s.querySelectorAll('.vrow').forEach(x => { x.classList.toggle('win-row', x.dataset.k === r.key); x.classList.toggle('dim', x.dataset.k !== r.key) });
     gsap.fromTo(s.querySelector('.vrow.win-row'), {scale: 1}, {scale: 1.05, duration: .18, yoyo: true, repeat: 3});
-    gsap.to(s.querySelector('.explain'), {opacity: 1, duration: .5}); gsap.from(s.querySelector('.explain'), {y: 30, rotate: -1.5, duration: .6, ease: 'back.out(2)'});
+    confetti(90); gsap.to(s.querySelector('.explain'), {opacity: 1, duration: .5}); gsap.from(s.querySelector('.explain'), {y: 30, rotate: -1.5, duration: .6, ease: 'back.out(2)'});
     pub({t: 'reveal', sid, round: +s.dataset.round, answer: r.key});
   }
 
@@ -821,7 +835,7 @@ function initDeck() {
     gsap.to(o, {v: d, duration: 1.6, delay: .6, ease: 'power3.out', onUpdate: () => $('#delta').textContent = (o.v >= 0 ? '+' : '−') + Math.abs(o.v).toFixed(1)});
     $('#delta').style.color = d > 0 ? 'var(--ink)' : 'var(--coral)';
     $('#deltaTxt').textContent = !b || !a ? 'not enough votes yet' : d > 0.05 ? `the room's mood went UP by ${d.toFixed(1)} points (1–5 scale) — music worked.` : d < -0.05 ? `mood went down ${Math.abs(d).toFixed(1)} — maybe it was the sad round 😅` : 'mood stayed the same — honest data!';
-    gsap.from('#delta', {scale: .4, rotate: -8, duration: .8, delay: .6, ease: 'back.out(3)'});
+    gsap.from('#delta', {scale: .4, rotate: -8, duration: .8, delay: .6, ease: 'back.out(3)'}); if (d > 0.05) setTimeout(() => confetti(160), 1500);
   }
   $('#showResult').onclick = showResult;
 
@@ -869,6 +883,27 @@ function initDeck() {
     clearTimeout(mTimer); mTimer = setTimeout(closeModal, 22000);
   };
 
+  /* --- WOW: live floating reactions + confetti --- */
+  function floatUp(emoji) {
+    const fx = $('#fx'); if (!fx || fx.childElementCount > 60) return;
+    const el = document.createElement('div'); el.className = 'fl'; el.textContent = emoji;
+    el.style.left = (4 + Math.random() * 88) + 'vw'; fx.appendChild(el);
+    const H = innerHeight + 160, dur = 3.2 + Math.random() * 1.8, sway = (Math.random() - .5) * 140;
+    gsap.fromTo(el, {y: 0, scale: .3, rotate: (Math.random() - .5) * 40}, {y: -H, scale: 1 + Math.random() * .5, duration: dur, ease: 'power1.out', onComplete: () => el.remove()});
+    gsap.to(el, {x: sway, duration: dur / 2, yoyo: true, repeat: 1, ease: 'sine.inOut'});
+    gsap.to(el, {opacity: 0, duration: .8, delay: dur - .8});
+  }
+  function confetti(n = 110) {
+    const fx = $('#fx'), cols = ['#DD7DFF', '#E8FF3C', '#FFB443', '#38DBFF', '#FF6B8A', '#00FF75'];
+    for (let i = 0; i < n; i++) {
+      const el = document.createElement('div'); el.className = 'cf'; el.style.background = cols[i % cols.length];
+      el.style.left = '50vw'; el.style.top = '45vh'; if (Math.random() < .3) el.style.borderRadius = '50%'; fx.appendChild(el);
+      const a = Math.random() * Math.PI * 2, v = 200 + Math.random() * 520;
+      gsap.to(el, {x: Math.cos(a) * v, y: Math.sin(a) * v - 180, rotate: Math.random() * 720, duration: .9 + Math.random() * .5, ease: 'power3.out'});
+      gsap.to(el, {y: '+=' + (innerHeight * .9), opacity: 0, duration: 1.6, delay: .9, ease: 'power1.in', onComplete: () => el.remove()});
+    }
+  }
+
   /* --- incoming messages --- */
   const loadT = Date.now() / 1000 - 2;
   function onMsg(m, time) {
@@ -883,8 +918,9 @@ function initDeck() {
     if (m.t === 'modall' && m.sid === sid) { Object.keys(S.tracks).forEach(id => S.shown.add(id)); renderWall(); sendState(); return }
     if (m.sid !== sid) return;
     if (m.cid) S.joined.add(m.cid);
-    if (m.t === 'mood') { S[m.phase === 'after' ? 'after' : 'before'][m.cid] = m.v; renderMood($('#mbBefore'), S.before); renderMood($('#mbAfter'), S.after); if (time >= loadT) sendState() }
-    if (m.t === 'guess' && S.guess[m.round]) { S.guess[m.round][m.cid] = m.v; renderGuess(m.round); if (time >= loadT) sendState() }
+    if (m.t === 'react' && time >= loadT && /^(🔥|😂|😍|👏|🤯)$/.test(m.e)) { floatUp(m.e); return }
+    if (m.t === 'mood') { if (time >= loadT && MOODS[m.v - 1]) floatUp(MOODS[m.v - 1][0]); S[m.phase === 'after' ? 'after' : 'before'][m.cid] = m.v; renderMood($('#mbBefore'), S.before); renderMood($('#mbAfter'), S.after); if (time >= loadT) sendState() }
+    if (m.t === 'guess' && S.guess[m.round]) { if (time >= loadT) floatUp('🗳️'); S.guess[m.round][m.cid] = m.v; renderGuess(m.round); if (time >= loadT) sendState() }
     if (m.t === 'track' && m.text) { S.tracks[m.id] = {text: String(m.text).slice(0, 60), cid: m.cid}; $('#cTracks').textContent = Object.keys(S.tracks).length;
       gsap.fromTo('#cTracks', {scale: 1.4}, {scale: 1, duration: .4, ease: 'back.out(3)'}); if (time >= loadT) sendState() }
     if (m.t === 'mod') { if (m.show) S.shown.add(m.id); else S.shown.delete(m.id); if (slides[cur].id === 's-wall') renderWall(); if (time >= loadT) sendState() }
@@ -900,6 +936,7 @@ function initDeck() {
     names.forEach((t, i) => { S.tracks['d' + i] = {text: t}; S.shown.add('d' + i) });
     $('#cJoined').textContent = S.joined.size; $('#cTracks').textContent = names.length;
     renderMood($('#mbBefore'), S.before); renderMood($('#mbAfter'), S.after); S.guess.forEach((_, i) => renderGuess(i)); renderWall(true);
+    for (let i = 0; i < 18; i++) setTimeout(() => floatUp(['🔥','😂','😍','👏','🤯'][i % 5]), i * 180);
   }
 
   /* --- music setup panel --- */
@@ -990,6 +1027,9 @@ function initPhone() {
       if (ch) render(); }
     if (m.t === 'reveal' && st && m.sid === st.sid) { mine[k('ans_' + m.round)] = m.answer; save(); if (st.stage === 'guess' && st.round === m.round) render() }
   }
+  let lastR = 0; $('#pReact').onclick = e => { const b = e.target.closest('button'); if (!b || Date.now() - lastR < 700) return; lastR = Date.now();
+    send({t: 'react', cid, e: b.textContent}); navigator.vibrate && navigator.vibrate(15);
+    if (window.gsap) gsap.fromTo(b, {scale: 1.35}, {scale: 1, duration: .35, ease: 'back.out(3)'}) };
   render();
   sub(onMsg, ok => { $('#pLiveTxt').textContent = ok ? '● live' : 'reconnecting…' }, '3m');
 }
