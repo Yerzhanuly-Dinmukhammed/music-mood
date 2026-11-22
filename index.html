@@ -232,7 +232,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
           <button class="btn" id="hookB">▶ Sound B</button>
         </div>
         <div class="reveal" id="hookReveal">
-          <h2 class="mid">Same room. Same people. 10 seconds.<br><span class="hl" style="color:var(--ink)">Completely different feelings.</span></h2>
+          <p class="mono" style="color:var(--lime);margin:0 0 12px">A = John Carpenter, Halloween · B = Pharrell Williams, Happy</p><h2 class="mid">Same room. Same people. 10 seconds.<br><span class="hl" style="color:var(--ink)">Completely different feelings.</span></h2>
         </div>
       </div>
     </section>
@@ -354,7 +354,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
         </div>
         <div class="row" style="justify-content:space-between;margin-top:10px">
           <h2 class="mid">Thank you! <span class="hl p">Questions?</span></h2>
-          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · all sounds generated live in the browser</span>
+          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · music: Carpenter, Pharrell, Survivor, Tiersen, Debussy, Lofi Girl (via YouTube)</span>
         </div>
       </div>
     </section>
@@ -407,6 +407,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
   </div>
 </div>
 
+<div id="ytWrap" style="position:fixed;right:0;bottom:0;width:320px;height:180px;opacity:0;pointer-events:none;z-index:-1"><div id="ytHidden"></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
@@ -518,6 +519,31 @@ const SONGS = {
   }
 };
 const SONG_LEN = {creepy:9.5, happy:9.5, energy:10, sad:10, calm:10.5, focus:10};
+/* REAL MUSIC (YouTube). start = second where the clip begins, dur = seconds to play. Tweak freely. */
+const CLIPS = {
+  creepy:{id:'mIhCdldRE1U', start:0,  dur:12, title:'John Carpenter — Halloween Theme'},
+  happy: {id:'y6Sxv-sUYtM', start:50, dur:12, title:'Pharrell Williams — Happy'},
+  energy:{id:'btPJPFnesV4', start:2,  dur:15, title:'Survivor — Eye of the Tiger'},
+  sad:   {id:'znfYwABeSZ0', start:8,  dur:15, title:'Yann Tiersen — Comptine d\'un autre été'},
+  calm:  {id:'WNcsUNKlAKw', start:2,  dur:15, title:'Debussy — Clair de Lune'},
+  focus: {id:'lTRiuFIWV54', start:30, dur:15, title:'Lofi Girl — 1 A.M Study Session'}
+};
+let YT_P = null, ytReady = false, ytTm = null, ytFade = null;
+window.onYouTubeIframeAPIReady = () => {
+  YT_P = new YT.Player('ytHidden', {width: 320, height: 180, playerVars: {controls: 0, disablekb: 1, playsinline: 1, rel: 0},
+    events: {onReady: () => { ytReady = true; document.dispatchEvent(new Event('ytready')) }}});
+};
+function playClip(name, onEnd) {
+  const c = CLIPS[name];
+  if (!ytReady || !c) return playSong(name, onEnd);           // offline fallback: generated music
+  stopSong();
+  YT_P.setVolume(100); YT_P.loadVideoById({videoId: c.id, startSeconds: c.start, endSeconds: c.start + c.dur + 1});
+  let v = 100; const fadeAt = (c.dur - 2) * 1000;
+  ytFade = setTimeout(() => { const iv = setInterval(() => { v -= 10; if (v <= 0) { clearInterval(iv) } try { YT_P.setVolume(Math.max(0, v)) } catch {} }, 180) }, fadeAt);
+  ytTm = setTimeout(() => { try { YT_P.pauseVideo() } catch {} playing = null; onEnd && onEnd() }, c.dur * 1000);
+  playing = {yt: true, name};
+}
+function cueClip(name) { const c = CLIPS[name]; if (ytReady && c) try { YT_P.cueVideoById({videoId: c.id, startSeconds: c.start}) } catch {} }
 function playSong(name, onEnd) {
   audio(); stopSong();
   const bus = AC.createGain(); bus.connect(master); const t = AC.currentTime + .05;
@@ -525,7 +551,7 @@ function playSong(name, onEnd) {
   const tm = setTimeout(() => { try { bus.gain.setTargetAtTime(0, AC.currentTime, .08); setTimeout(() => bus.disconnect(), 500) } catch {} playing = null; onEnd && onEnd() }, SONG_LEN[name] * 1000);
   playing = {bus, tm, name};
 }
-function stopSong() { if (!playing) return; clearTimeout(playing.tm); const b = playing.bus; try { b.gain.setTargetAtTime(0, AC.currentTime, .05); setTimeout(() => b.disconnect(), 400) } catch {} playing = null; }
+function stopSong() { if (!playing) return; if (playing.yt) { clearTimeout(ytTm); clearTimeout(ytFade); try { YT_P.pauseVideo() } catch {} playing = null; return } clearTimeout(playing.tm); const b = playing.bus; try { b.gain.setTargetAtTime(0, AC.currentTime, .05); setTimeout(() => b.disconnect(), 400) } catch {} playing = null; }
 
 /* ================= ROUTER ================= */
 const mode = location.hash === '#join' ? 'phone' : location.hash === '#' + HOST_HASH ? 'host' : 'deck';
@@ -557,7 +583,7 @@ function initDeck() {
           <div class="mono" style="text-align:right"><span class="vn">0</span> votes</div>
           <div class="explain factcard" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:14px;align-items:center">
             <div class="photo" style="background-image:url(${IMG(r.img, 700)})"><span class="cr">${r.cr}</span></div>
-            <p style="margin:0;font-size:clamp(14px,1.15vw,20px);line-height:1.35"><b>${EMO[r.key].label} — why?</b><br>${r.why}</p>
+            <p style="margin:0;font-size:clamp(14px,1.15vw,20px);line-height:1.35"><span class="tag" style="margin-bottom:8px">♪ ${CLIPS[r.key].title.replace(/'/g,'&#39;')}</span><br><b>${EMO[r.key].label} — why?</b><br>${r.why}</p>
           </div>
         </div>
       </div>
@@ -599,7 +625,7 @@ function initDeck() {
   function onEnter(s) {
     if (s.id === 's-wall') renderWall(true);
     if (s.id === 's-after') { $('#resultBox').style.visibility = 'hidden' }
-    if (s.classList.contains('guess')) { s.querySelector('.explain').style.opacity = 0; s.querySelectorAll('.vrow').forEach(r => r.classList.remove('win-row', 'dim')); renderGuess(+s.dataset.round) }
+    if (s.classList.contains('guess')) { cueClip(ROUNDS[+s.dataset.round].key); s.querySelector('.explain').style.opacity = 0; s.querySelectorAll('.vrow').forEach(r => r.classList.remove('win-row', 'dim')); renderGuess(+s.dataset.round) }
   }
   const action = () => {
     const s = slides[cur];
@@ -622,7 +648,7 @@ function initDeck() {
   let heard = 0;
   const hookPlay = (btn, song) => { btn.classList.add('on'); gsap.to('#s-hook', {backgroundColor: song === 'creepy' ? '#120414' : '#1d1400', duration: .8});
     btn.innerHTML = `<span class="eqmini"><i></i><i></i><i></i><i></i></span> playing…`;
-    playSong(song, () => { btn.innerHTML = song === 'creepy' ? '✓ Sound A' : '✓ Sound B'; if (++heard >= 2) { gsap.to('#hookReveal', {opacity: 1, y: 0, duration: .6, ease: 'back.out(2)'}); gsap.to('#s-hook', {backgroundColor: '#0b0b0b', duration: .8}) } }); };
+    playClip(song, () => { btn.innerHTML = song === 'creepy' ? '✓ Sound A' : '✓ Sound B'; if (++heard >= 2) { gsap.to('#hookReveal', {opacity: 1, y: 0, duration: .6, ease: 'back.out(2)'}); gsap.to('#s-hook', {backgroundColor: '#0b0b0b', duration: .8}) } }); };
   $('#hookA').onclick = () => hookPlay($('#hookA'), 'creepy');
   $('#hookB').onclick = () => hookPlay($('#hookB'), 'happy');
   gsap.set('#hookReveal', {y: 30});
@@ -631,7 +657,7 @@ function initDeck() {
   $$('[data-play]').forEach(b => b.onclick = () => {
     const i = +b.dataset.play; if (playing) { stopSong(); b.textContent = '▶'; return }
     b.innerHTML = '■'; b.classList.add('on');
-    playSong(ROUNDS[i].key, () => { b.textContent = '↻'; b.classList.remove('on') });
+    playClip(ROUNDS[i].key, () => { b.textContent = '↻'; b.classList.remove('on') });
   });
   function renderGuess(i) {
     const s = slides.find(x => x.dataset.round == i && x.classList.contains('guess')); if (!s) return;
@@ -654,7 +680,7 @@ function initDeck() {
     const s = slides[cur]; const c = s && s.querySelector('canvas.eq');
     if (c) { const W = c.clientWidth, H = c.clientHeight; if (c.width !== W) { c.width = W; c.height = H }
       const g = c.getContext('2d'); g.fillStyle = '#0b0b0b'; g.fillRect(0, 0, W, H);
-      if (analyser && playing) analyser.getByteFrequencyData(data); else data.fill(0);
+      if (playing && playing.yt) { const t = Date.now() / 1000, beat = Math.max(0, Math.sin(t * Math.PI * 2 * (playing.name === 'energy' || playing.name === 'happy' ? 2.1 : playing.name === 'focus' ? 1.4 : .6))); for (let k = 0; k < 128; k++) data[k] = Math.min(255, (60 + 150 * Math.random() ** 1.5) * (1 - k / 160) + beat * 70 * (k < 40)) } else if (analyser && playing) analyser.getByteFrequencyData(data); else data.fill(0);
       const N = 32, bw = W / N; const cols = ['#DD7DFF', '#E8FF3C', '#FFB443', '#38DBFF'];
       for (let i = 0; i < N; i++) { const v = playing ? data[Math.floor(2 + (i / N) ** 1.7 * 70)] / 255 : .04 + .03 * Math.sin(Date.now() / 400 + i);
         const h = Math.max(4, v * H * .95); g.fillStyle = cols[i % 4]; g.fillRect(i * bw + 3, H - h, bw - 6, h) } }
@@ -828,5 +854,6 @@ function initHost() {
 }
 }
 </script>
+<script>if (!/#(join)$/.test(location.hash)) { const t = document.createElement('script'); t.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(t) }</script>
 </body>
 </html>
