@@ -6,6 +6,7 @@
 <title>MUSIC_MOOD.EXE — Using Music to Regulate Emotions</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://ntfy.sh">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /*
@@ -232,7 +233,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
           <button class="btn" id="hookB">▶ Sound B</button>
         </div>
         <div class="reveal" id="hookReveal">
-          <p class="mono" style="color:var(--lime);margin:0 0 12px">A = John Carpenter, Halloween · B = Pharrell Williams, Happy</p><h2 class="mid">Same room. Same people. 10 seconds.<br><span class="hl" style="color:var(--ink)">Completely different feelings.</span></h2>
+          <p class="mono" style="color:var(--lime);margin:0 0 12px">A = John Carpenter, Halloween · B = Katrina &amp; The Waves, Walking on Sunshine</p><h2 class="mid">Same room. Same people. 10 seconds.<br><span class="hl" style="color:var(--ink)">Completely different feelings.</span></h2>
         </div>
       </div>
     </section>
@@ -327,7 +328,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
         <div class="stack">
           <span class="tag" style="align-self:flex-start;background:var(--green)">STEP 2 · SAME QUESTION AGAIN</span>
           <h1 class="big">How do you feel <span class="hl p">now?</span></h1>
-          <p class="lead">Vote on your phone. Then we compare the room <b>before</b> and <b>after</b> 8 minutes of music.</p>
+          <p class="lead">Vote on your phone. Then we compare the room <b>before</b> and <b>after</b> a few minutes of music.</p>
           <div class="win"><div class="bar blue"><span class="t">live_mood_meter — AFTER</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
             <div class="body"><div class="moodbars" id="mbAfter"></div></div></div>
           <div class="row"><button class="btn purple" id="showResult">▶ Show the result</button><span class="mono">(or press R)</span></div>
@@ -354,14 +355,14 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
         </div>
         <div class="row" style="justify-content:space-between;margin-top:10px">
           <h2 class="mid">Thank you! <span class="hl p">Questions?</span></h2>
-          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · music: Carpenter, Pharrell, Survivor, Tiersen, Debussy, Kupla · 30-sec previews via Apple Music</span>
+          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · music: Carpenter, Katrina &amp; The Waves, Imagine Dragons, Lewis Capaldi, Marconi Union, Pharrell, Kupla · 30-sec previews via Apple Music</span>
         </div>
       </div>
     </section>
 
   </div>
   <div class="task">
-    <button class="start" id="setupBtn" style="font:inherit;cursor:pointer">♪ MUSIC <span id="musicCount">0/6</span></button>
+    <button class="start" id="setupBtn" style="font:inherit;cursor:pointer">♪ MUSIC <span id="musicCount">0/7</span></button>
     <span id="slideName" class="mono">hook</span>
     <div class="dots" id="dots"></div>
     <span class="live" id="liveDot"><i></i><span id="liveTxt">connecting…</span></span>
@@ -408,7 +409,8 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
   <div class="wrap">
     <div class="win"><div class="bar"><span class="t">host_remote.exe</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
       <div class="body stack">
-        <div class="mono" id="hStage">stage: —</div>
+        <div class="row" style="justify-content:space-between"><b class="mono" id="hStage">waiting for the laptop…</b><span class="mono" id="hLive">connecting…</span></div>
+        <div class="mono" id="hStatus" style="border:2.5px solid var(--ink);padding:8px 10px;background:var(--yellow)">Open the presentation on the laptop first.</div>
         <div class="nav"><button class="btn white" id="hPrev">◀ Back</button><button class="btn" id="hNext">Next ▶</button></div>
         <button class="btn purple" id="hAction">▶ Play / Reveal</button>
       </div></div>
@@ -426,6 +428,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
 const TOPIC = 'musicmood-yd04p-k7q2x9';      // public ntfy.sh channel — random so nobody else lands in it
 const HOST_HASH = 'host-k7q2';               // open …/#host-k7q2 on YOUR phone for the remote
 const NTFY = 'https://ntfy.sh/' + TOPIC;
+const IS_DECK = !(location.hash === '#join' || location.hash === '#' + HOST_HASH);
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const IMG = (id, w = 1100) => `https://images.unsplash.com/photo-${id}?w=${w}&q=70&auto=format&fit=crop`;
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v) } catch { return d } },
@@ -436,15 +439,18 @@ const EMO = {
   calm:  {label:'😌 Calm',   color:'var(--blue)'},
   energy:{label:'⚡ Energy', color:'var(--orange)'},
   sad:   {label:'🌧 Sad',    color:'var(--purple)'},
-  focus: {label:'📚 Focus',  color:'var(--lime)'}
+  focus: {label:'📚 Focus',  color:'var(--lime)'},
+  joy:   {label:'😄 Joy',    color:'var(--pink)'}
 };
 const ROUNDS = [
   {key:'energy', bar:'orange', img:'1723117417817-a122a6d202d5', cr:'goldsgymnepal / Unsplash',
-   why:'Fast tempo (~128 BPM) + a strong kick on every beat. Your heart rate and body want to sync with the rhythm — that\'s why gym playlists are fast.'},
+   why:'Pounding drums at ~125 BPM, stomps and claps. Your heart rate and body want to sync with the beat — that\'s why gym playlists are fast and loud.'},
   {key:'sad', bar:'purple', img:'1511634829096-045a111727eb', cr:'cg / Unsplash',
-   why:'Minor key + slow tempo. Sad songs don\'t always make you sadder — they can make you feel understood. Therapists start by matching your mood, then shift it up.'},
+   why:'Slow tempo, soft piano, a voice that almost breaks — and lyrics about loss. Sad songs don\'t always make you sadder: they can make you feel understood.'},
   {key:'calm', bar:'blue', img:'1718382341267-aef8a9e4ecef', cr:'cipriann / Unsplash',
-   why:'Slow (~65 BPM), soft, long notes, no sudden changes. Close to a resting heartbeat — it tells your body there\'s no danger.'},
+   why:'Made together with sound therapists: the tempo slowly drops, there\'s no catchy melody to follow, low tones hum steadily — your breathing slows down with it.'},
+  {key:'joy', bar:'pink', img:'1454486837617-ce8e1ba5ebfe', cr:'dre0316 / Unsplash',
+   why:'Major key, handclaps, a bouncy rhythm and a chorus everyone can sing. Bright major-key music is the fastest way to lift a whole room.'},
   {key:'focus', bar:'lime', img:'1741699428220-65f37f3fbbcb', cr:'zoshuacolah / Unsplash',
    why:'Steady, repetitive, no lyrics. Lyrics compete with the words you\'re reading; a predictable loop keeps you in the zone without grabbing attention.'}
 ];
@@ -532,10 +538,11 @@ const SONG_LEN = {creepy:9.5, happy:9.5, energy:10, sad:10, calm:10.5, focus:10}
 /* REAL MUSIC (YouTube). start = second where the clip begins, dur = seconds to play. Tweak freely. */
 const CLIPS = {
   creepy:{id:'mIhCdldRE1U', start:0,  dur:12, title:'John Carpenter — Halloween Theme'},
-  happy: {id:'y6Sxv-sUYtM', start:50, dur:12, title:'Pharrell Williams — Happy'},
-  energy:{id:'btPJPFnesV4', start:2,  dur:15, title:'Survivor — Eye of the Tiger'},
-  sad:   {id:'znfYwABeSZ0', start:8,  dur:15, title:'Yann Tiersen — Comptine d\'un autre été (piano: V. Lisitsa)'},
-  calm:  {id:'WNcsUNKlAKw', start:2,  dur:15, title:'Debussy — Clair de Lune (W. Gieseking)'},
+  happy: {id:null, start:0, dur:12, title:'Katrina & The Waves — Walking on Sunshine'},
+  energy:{id:null, start:0, dur:15, title:'Imagine Dragons — Believer'},
+  sad:   {id:null, start:0, dur:15, title:'Lewis Capaldi — Someone You Loved'},
+  calm:  {id:null, start:0, dur:15, title:'Marconi Union — Weightless'},
+  joy:   {id:'y6Sxv-sUYtM', start:50, dur:15, title:'Pharrell Williams — Happy'},
   focus: {id:'lTRiuFIWV54', start:30, dur:15, title:'Kupla — Owls of the Night (Lofi Girl)'}
 };
 let YT_P = null, ytReady = false, ytTm = null, ytFade = null;
@@ -545,20 +552,20 @@ window.onYouTubeIframeAPIReady = () => {
 };
 
 /* ===== LOCAL MUSIC FILES (stored only in this laptop's browser via IndexedDB) ===== */
-const LOCAL_DEF = {creepy:{start:0,dur:12}, happy:{start:47,dur:12}, energy:{start:0,dur:15}, sad:{start:5,dur:15}, calm:{start:0,dur:15}, focus:{start:20,dur:15}};
+const LOCAL_DEF = {creepy:{start:0,dur:12}, happy:{start:0,dur:12}, energy:{start:0,dur:15}, sad:{start:0,dur:15}, calm:{start:0,dur:15}, joy:{start:47,dur:15}, focus:{start:20,dur:15}};
 const LSET = store.get('mm_local', {}); for (const k in LOCAL_DEF) LSET[k] = Object.assign({}, LOCAL_DEF[k], LSET[k] || {});
 const LOCAL = {};   // name -> objectURL
 const idb = () => new Promise((res, rej) => { const r = indexedDB.open('music_mood', 1); r.onupgradeneeded = () => r.result.createObjectStore('files'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error) });
 async function idbPut(k, v) { const d = await idb(); return new Promise(r => { const t = d.transaction('files', 'readwrite'); t.objectStore('files').put(v, k); t.oncomplete = r }) }
 async function idbAll() { const d = await idb(); return new Promise(r => { const out = {}, t = d.transaction('files'), st = t.objectStore('files'); st.openCursor().onsuccess = e => { const c = e.target.result; if (c) { out[c.key] = c.value; c.continue() } else r(out) } }) }
 async function loadLocal() { try { const all = await idbAll(); for (const k in all) { if (LOCAL[k]) URL.revokeObjectURL(LOCAL[k]); LOCAL[k] = URL.createObjectURL(all[k].blob); LSET[k].file = all[k].name } } catch {} document.dispatchEvent(new Event('localready')) }
-loadLocal();
+if (IS_DECK) loadLocal();
 let audEl, audGain, audTm, audFade;
 /* Apple Music official 30-second previews (no ads, legal for apps). Used when no local file is set. */
-const APPLE = {creepy:1107715429, happy:863835363, energy:254685026, sad:1440719956, calm:303883400, focus:6787937401};
-const APPLE_CFG = {creepy:{start:0,dur:12}, happy:{start:0,dur:12}, energy:{start:0,dur:15}, sad:{start:0,dur:15}, calm:{start:0,dur:15}, focus:{start:0,dur:15}};
+const APPLE = {creepy:1107715429, happy:723501674, energy:1411628233, sad:1452619054, calm:571977598, joy:863835363, focus:6787937401};
+const APPLE_CFG = {creepy:{start:0,dur:12}, happy:{start:0,dur:12}, energy:{start:0,dur:15}, sad:{start:0,dur:15}, calm:{start:0,dur:15}, joy:{start:0,dur:15}, focus:{start:0,dur:15}};
 const PREVIEW = {};
-fetch('https://itunes.apple.com/lookup?id=' + Object.values(APPLE).join(',')).then(r => r.json()).then(j => {
+if (IS_DECK) fetch('https://itunes.apple.com/lookup?id=' + Object.values(APPLE).join(',')).then(r => r.json()).then(j => {
   for (const k in APPLE) { const t = j.results.find(x => x.trackId === APPLE[k]); if (t && t.previewUrl) { PREVIEW[k] = t.previewUrl; const a = new Audio(); a.preload = 'auto'; a.crossOrigin = 'anonymous'; a.src = t.previewUrl } }
   document.dispatchEvent(new Event('localready'));
 }).catch(() => {});
@@ -576,7 +583,7 @@ function playLocal(name, onEnd) {
 function playClip(name, onEnd) {
   if (LOCAL[name] || PREVIEW[name]) return playLocal(name, onEnd);
   const c = CLIPS[name];
-  if (!ytReady || !c) return playSong(name, onEnd);           // offline fallback: generated music
+  if (!ytReady || !c || !c.id) return playSong(name, onEnd);           // offline fallback: generated music
   stopSong();
   YT_P.setVolume(100); YT_P.loadVideoById({videoId: c.id, startSeconds: c.start, endSeconds: c.start + c.dur + 1});
   let v = 100; const fadeAt = (c.dur - 2) * 1000;
@@ -584,12 +591,12 @@ function playClip(name, onEnd) {
   ytTm = setTimeout(() => { try { YT_P.pauseVideo() } catch {} playing = null; onEnd && onEnd() }, c.dur * 1000);
   playing = {yt: true, name};
 }
-function cueClip(name) { if (LOCAL[name] || PREVIEW[name]) return; const c = CLIPS[name]; if (ytReady && c) try { YT_P.cueVideoById({videoId: c.id, startSeconds: c.start}) } catch {} }
+function cueClip(name) { if (LOCAL[name] || PREVIEW[name]) return; const c = CLIPS[name]; if (ytReady && c && c.id) try { YT_P.cueVideoById({videoId: c.id, startSeconds: c.start}) } catch {} }
 function playSong(name, onEnd) {
   audio(); stopSong();
   const bus = AC.createGain(); bus.connect(master); const t = AC.currentTime + .05;
-  SONGS[name](bus, t);
-  const tm = setTimeout(() => { try { bus.gain.setTargetAtTime(0, AC.currentTime, .08); setTimeout(() => bus.disconnect(), 500) } catch {} playing = null; onEnd && onEnd() }, SONG_LEN[name] * 1000);
+  (SONGS[name] || SONGS.happy)(bus, t);
+  const tm = setTimeout(() => { try { bus.gain.setTargetAtTime(0, AC.currentTime, .08); setTimeout(() => bus.disconnect(), 500) } catch {} playing = null; onEnd && onEnd() }, (SONG_LEN[name] || 10) * 1000);
   playing = {bus, tm, name};
 }
 function stopSong() { if (!playing) return; if (playing.local) { clearTimeout(audTm); clearTimeout(audFade); try { audEl.pause() } catch {} playing = null; return } if (playing.yt) { clearTimeout(ytTm); clearTimeout(ytFade); try { YT_P.pauseVideo() } catch {} playing = null; return } clearTimeout(playing.tm); const b = playing.bus; try { b.gain.setTargetAtTime(0, AC.currentTime, .05); setTimeout(() => b.disconnect(), 400) } catch {} playing = null; }
@@ -612,7 +619,7 @@ function initDeck() {
     <section class="slide guess" data-stage="guess" data-round="${i}">
       <div class="guessgrid">
         <div class="player">
-          <div class="row" style="justify-content:space-between"><span class="tag" style="background:var(--${r.bar})">GAME · ROUND ${i + 1}/4</span><span class="mono">vote on your phone</span></div>
+          <div class="row" style="justify-content:space-between"><span class="tag" style="background:var(--${r.bar})">GAME · ROUND ${i + 1}/${ROUNDS.length}</span><span class="mono">vote on your phone</span></div>
           <h1 class="big" style="font-size:clamp(30px,3.6vw,64px)">Guess the emotion</h1>
           <div class="win"><div class="bar ${r.bar === 'purple' ? '' : r.bar}"><span class="t">round_${i + 1}.wav</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
             <div class="body"><canvas class="eq"></canvas>
@@ -642,7 +649,7 @@ function initDeck() {
   /* --- state --- */
   let sid = store.get('mm_sid', null);
   if (!sid) { sid = Math.random().toString(36).slice(2, 8); store.set('mm_sid', sid) }
-  const S = {joined: new Set(), before: {}, after: {}, guess: [{}, {}, {}, {}], tracks: {}, shown: new Set()};
+  const S = {joined: new Set(), before: {}, after: {}, guess: ROUNDS.map(() => ({})), tracks: {}, shown: new Set()};
   const links = store.get('mm_links', {});
   let cur = 0;
 
@@ -658,11 +665,15 @@ function initDeck() {
       gsap.from(next.querySelectorAll('.tag,h1,h2,.lead,.win,.factcard:not(.explain),.qrbox,.timeline>div,.vrow,.btn,.count'), {y: 40, opacity: 0, duration: .5, stagger: .05, ease: 'back.out(2)', delay: .1, clearProps: 'transform,opacity'});
     }
     onEnter(next);
-    broadcastStage();
+    broadcastStage(); sendState();
   }
   function broadcastStage() {
     const s = slides[cur]; pub({t: 'stage', sid, stage: s.dataset.stage, round: +(s.dataset.round || 0), at: Date.now()});
   }
+  let stT; function sendState() { clearTimeout(stT); stT = setTimeout(() => {   // compact snapshot for the host remote
+    const ids = Object.keys(S.tracks).slice(-35);
+    pub({t: 'state', sid, at: Date.now(), idx: cur, total: slides.length, name: $('#slideName').textContent, joined: S.joined.size,
+         tracks: ids.map(id => [id, S.tracks[id].text.slice(0, 50)]), shown: ids.filter(id => S.shown.has(id))}) }, 350) }
   function onEnter(s) {
     if (s.id === 's-wall') renderWall(true);
     if (s.id === 's-after') { $('#resultBox').style.visibility = 'hidden' }
@@ -681,7 +692,7 @@ function initDeck() {
     else if (['ArrowLeft', 'PageUp', 'ArrowUp'].includes(e.key)) { e.preventDefault(); go(cur - 1) }
     else if (e.key === ' ') { e.preventDefault(); const s = slides[cur]; if (s.classList.contains('guess')) s.querySelector('[data-play]').click(); else action() }
     else if (e.key.toLowerCase() === 'r') { const s = slides[cur]; if (s.classList.contains('guess')) reveal(); else if (s.id === 's-after') showResult() }
-    else if (e.key.toLowerCase() === 'a' && !e.shiftKey) { Object.keys(S.tracks).forEach(id => S.shown.add(id)); renderWall() }
+    else if (e.key.toLowerCase() === 'a' && !e.shiftKey) { Object.keys(S.tracks).forEach(id => S.shown.add(id)); renderWall(); sendState() }
     else if (e.key.toLowerCase() === 'd') demo();
     else if (e.code === 'KeyN' && e.shiftKey) { store.set('mm_sid', null); location.reload() }
   });
@@ -795,16 +806,17 @@ function initDeck() {
   /* --- incoming messages --- */
   const loadT = Date.now() / 1000 - 2;
   function onMsg(m, time) {
-    if ((m.t === 'nav' || m.t === 'modall') && time < loadT) return;
+    if ((m.t === 'nav' || m.t === 'modall' || m.t === 'sync') && time < loadT) return;
+    if (m.t === 'sync') { sendState(); return }
     if (m.t === 'nav') { if (m.dir === 1) go(cur + 1); else if (m.dir === -1) go(cur - 1); else action(); return }
-    if (m.t === 'modall' && m.sid === sid) { Object.keys(S.tracks).forEach(id => S.shown.add(id)); renderWall(); return }
+    if (m.t === 'modall' && m.sid === sid) { Object.keys(S.tracks).forEach(id => S.shown.add(id)); renderWall(); sendState(); return }
     if (m.sid !== sid) return;
     if (m.cid) S.joined.add(m.cid);
     if (m.t === 'mood') { S[m.phase === 'after' ? 'after' : 'before'][m.cid] = m.v; renderMood($('#mbBefore'), S.before); renderMood($('#mbAfter'), S.after) }
     if (m.t === 'guess' && S.guess[m.round]) { S.guess[m.round][m.cid] = m.v; renderGuess(m.round) }
     if (m.t === 'track' && m.text) { S.tracks[m.id] = {text: String(m.text).slice(0, 60), cid: m.cid}; $('#cTracks').textContent = Object.keys(S.tracks).length;
-      gsap.fromTo('#cTracks', {scale: 1.4}, {scale: 1, duration: .4, ease: 'back.out(3)'}) }
-    if (m.t === 'mod') { if (m.show) S.shown.add(m.id); else S.shown.delete(m.id); if (slides[cur].id === 's-wall') renderWall(); }
+      gsap.fromTo('#cTracks', {scale: 1.4}, {scale: 1, duration: .4, ease: 'back.out(3)'}); if (time >= loadT) sendState() }
+    if (m.t === 'mod') { if (m.show) S.shown.add(m.id); else S.shown.delete(m.id); if (slides[cur].id === 's-wall') renderWall(); if (time >= loadT) sendState() }
     const j = $('#cJoined'), n = S.joined.size; if (+j.textContent !== n) { j.textContent = n; gsap.fromTo(j, {scale: 1.3}, {scale: 1, duration: .4, ease: 'back.out(3)'}) }
   }
   sub(onMsg, ok => { $('#liveDot').classList.toggle('ok', ok); $('#liveTxt').textContent = ok ? 'LIVE · room ' + sid : 'offline — retrying' });
@@ -813,15 +825,15 @@ function initDeck() {
   function demo() {
     const names = ['Lana Del Rey — Summertime Sadness','Weeknd — Blinding Lights','lo-fi beats','Imagine Dragons — Believer','Ludovico Einaudi — Experience','Скриптонит — Привычка','Billie Eilish — ocean eyes','Ninety One — Ice-Ice'];
     for (let i = 0; i < 14; i++) { const cid = 'demo' + i; S.joined.add(cid); S.before[cid] = 1 + Math.floor(Math.random() * 4); S.after[cid] = Math.min(5, S.before[cid] + Math.round(Math.random() * 1.6));
-      S.guess.forEach((g, r) => g[cid] = Math.random() < .6 ? ROUNDS[r].key : Object.keys(EMO)[Math.floor(Math.random() * 4)]) }
+      S.guess.forEach((g, r) => g[cid] = Math.random() < .6 ? ROUNDS[r].key : Object.keys(EMO)[Math.floor(Math.random() * Object.keys(EMO).length)]) }
     names.forEach((t, i) => { S.tracks['d' + i] = {text: t}; S.shown.add('d' + i) });
     $('#cJoined').textContent = S.joined.size; $('#cTracks').textContent = names.length;
     renderMood($('#mbBefore'), S.before); renderMood($('#mbAfter'), S.after); S.guess.forEach((_, i) => renderGuess(i)); renderWall(true);
   }
 
   /* --- music setup panel --- */
-  const SLOT = {creepy:'Sound A · scary (Halloween)', happy:'Sound B · happy (Happy)', energy:'Round 1 · Energy (Eye of the Tiger)', sad:'Round 2 · Sad (Comptine)', calm:'Round 3 · Calm (Clair de Lune)', focus:'Round 4 · Focus (lofi)'};
-  const countMusic = () => { const n = Object.keys(SLOT).filter(k => LOCAL[k] || PREVIEW[k]).length; $('#musicCount').textContent = n + '/6'; $('#setupBtn').style.background = n === 6 ? 'var(--green)' : 'var(--lime)' };
+  const SLOT = {creepy:'Sound A · scary (Halloween)', happy:'Sound B · happy (Walking on Sunshine)', energy:'Round 1 · Energy (Believer)', sad:'Round 2 · Sad (Someone You Loved)', calm:'Round 3 · Calm (Weightless)', joy:'Round 4 · Joy (Happy)', focus:'Round 5 · Focus (lofi)'};
+  const countMusic = () => { const n = Object.keys(SLOT).filter(k => LOCAL[k] || PREVIEW[k]).length; $('#musicCount').textContent = n + '/7'; $('#setupBtn').style.background = n === 7 ? 'var(--green)' : 'var(--lime)' };
   function drawSetup() {
     $('#setupRows').innerHTML = Object.keys(SLOT).map(k => `<div class="row" data-k="${k}" style="border:var(--b);padding:10px;background:${LOCAL[k] ? '#eaffd6' : 'var(--white)'};box-shadow:var(--sh-s)">
       <b style="flex:1 1 230px">${SLOT[k]}<br><span class="mono" style="font-weight:400;font-size:12px">${LOCAL[k] ? '✓ your file: ' + esc(LSET[k].file || 'file') : PREVIEW[k] ? '✓ Apple Music 30-sec preview (add a file to override)' : 'no file — YouTube fallback'}</span></b>
@@ -842,13 +854,14 @@ function initDeck() {
   $('#setupClose').onclick = () => { stopSong(); $('#setup').classList.add('hidden') };
   document.addEventListener('localready', countMusic);
   slides[0].classList.add('active'); go(0, false); $$('#dots b')[0].classList.add('on');
-  setInterval(broadcastStage, 30000); // keeps late joiners in sync
+  setInterval(broadcastStage, 20000); // keeps late joiners in sync
 }
 
 /* ================= PHONE ================= */
 function initPhone() {
   let cid = store.get('mm_cid', null); if (!cid) { cid = Math.random().toString(36).slice(2, 10); store.set('mm_cid', cid) }
-  let st = null, lastAt = 0;
+  let st = {stage: 'before', sid: null, round: 0, at: 0}, lastAt = 0; const queue = [];
+  const send = o => { if (st.sid) pub(Object.assign({sid: st.sid}, o)); else queue.push(o) };
   const mine = store.get('mm_mine', {}); const save = () => store.set('mm_mine', mine);
   const V = $('#pView');
   const k = (s) => (st ? st.sid : '') + ':' + s;
@@ -865,9 +878,9 @@ function initPhone() {
         <h2>What do you listen to when you're stressed?</h2><p class="mono" style="margin:0">Artist — song. It might get played on the big screen 👀</p>
         <form id="tf" class="stack"><input class="in" id="tin" maxlength="60" placeholder="e.g. The Weeknd — Blinding Lights" autocomplete="off"><button class="btn purple">Send song ▶</button></form>
         ${myTracks.length ? `<div class="sent">${myTracks.map(t => `<span>✓ ${esc(t)}</span>`).join('')}</div>` : ''}</div></div>` : ''}`;
-      V.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { mine[mk] = +b.dataset.m; save(); pub({t: 'mood', sid: st.sid, cid, phase: s, v: +b.dataset.m}); render(); navigator.vibrate && navigator.vibrate(30) });
+      V.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { mine[mk] = +b.dataset.m; save(); send({t: 'mood', cid, phase: s, v: +b.dataset.m}); render(); navigator.vibrate && navigator.vibrate(30) });
       const f = $('#tf'); if (f) f.onsubmit = e => { e.preventDefault(); const t = $('#tin').value.trim(); if (!t) return;
-        const id = cid + '_' + Date.now().toString(36); pub({t: 'track', sid: st.sid, cid, id, text: t.slice(0, 60)});
+        const id = cid + '_' + Date.now().toString(36); send({t: 'track', cid, id, text: t.slice(0, 60)});
         (mine[k('tracks')] = myTracks).push(t); save(); render(); };
     } else if (s === 'guess') {
       const gk = k('guess_' + st.round), picked = mine[gk], ans = mine[k('ans_' + st.round)];
@@ -875,7 +888,7 @@ function initPhone() {
         <h2>Round ${st.round + 1}: what emotion is this music?</h2>
         <div class="choices">${Object.keys(EMO).map(e => `<button class="btn ${picked === e ? 'on' : ''}" data-g="${e}" style="background:${EMO[e].color}">${EMO[e].label}${ans ? (ans === e ? ' ✓' : '') : ''}</button>`).join('')}</div>
         ${ans ? `<div class="ok" style="background:${picked === ans ? 'var(--green)' : 'var(--coral)'}">${picked === ans ? '🎉 Correct!' : 'Not this time — answer: ' + EMO[ans].label}</div>` : picked ? '<div class="ok">✓ Vote sent. Watch the screen!</div>' : ''}</div></div>`;
-      V.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { if (ans) return; mine[gk] = b.dataset.g; save(); pub({t: 'guess', sid: st.sid, cid, round: st.round, v: b.dataset.g}); render(); navigator.vibrate && navigator.vibrate(30) });
+      V.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { if (ans) return; mine[gk] = b.dataset.g; save(); send({t: 'guess', cid, round: st.round, v: b.dataset.g}); render(); navigator.vibrate && navigator.vibrate(30) });
     } else if (s === 'end') {
       V.innerHTML = `<div class="win"><div class="bar lime"><span class="t">thanks.exe</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div><div class="body stack">
         <h2>Thanks for playing! 🎧</h2><p>Your challenge: build 3 playlists.</p>
@@ -887,37 +900,43 @@ function initPhone() {
     if (window.gsap) gsap.from('#pView .win', {y: 30, opacity: 0, duration: .45, stagger: .08, ease: 'back.out(2)', clearProps: 'transform,opacity'});
   }
   function onMsg(m, time) {
-    if (m.t === 'stage') { if (m.at < lastAt) return; lastAt = m.at; const ch = !st || st.stage !== m.stage || st.round !== m.round || st.sid !== m.sid; st = m; if (ch) render(); }
+    if (m.t === 'stage') { if (m.at < lastAt) return; lastAt = m.at;
+      if (!st.sid) { for (const key of Object.keys(mine)) if (key.startsWith('null:')) mine[m.sid + key.slice(4)] = mine[key]; save() }   // keep answers given before connecting
+      const ch = st.stage !== m.stage || st.round !== m.round || (st.sid && st.sid !== m.sid); st = m;
+      while (queue.length) send(queue.shift());
+      if (ch) render(); }
     if (m.t === 'reveal' && st && m.sid === st.sid) { mine[k('ans_' + m.round)] = m.answer; save(); if (st.stage === 'guess' && st.round === m.round) render() }
   }
   render();
-  sub(onMsg, ok => { $('#pLiveTxt').textContent = ok ? '● live' : 'reconnecting…' }, '6h');
+  sub(onMsg, ok => { $('#pLiveTxt').textContent = ok ? '● live' : 'reconnecting…' }, '3m');
 }
 
 /* ================= HOST REMOTE ================= */
 function initHost() {
-  let sid = null; const tracks = {}, shown = new Set();
-  const draw = () => {
-    const ids = Object.keys(tracks);
-    $('#hList').innerHTML = ids.length ? ids.reverse().map(id => `<div class="titem ${shown.has(id) ? 'shown' : ''}"><span class="tx">${esc(tracks[id])}</span>
-      <button class="btn ${shown.has(id) ? 'white' : ''}" data-id="${id}">${shown.has(id) ? 'Hide' : 'Show'}</button></div>`).join('') : '<p class="mono">No songs yet.</p>';
-    $$('#hList [data-id]').forEach(b => b.onclick = () => { const id = b.dataset.id, show = !shown.has(id); show ? shown.add(id) : shown.delete(id); pub({t: 'mod', sid, id, show}); draw() });
+  let sid = null, tracks = [], shown = new Set(), lastAt = 0, sig = '', waitT;
+  const status = (t, c) => { const el = $('#hStatus'); el.textContent = t; el.style.background = c || 'var(--yellow)' };
+  const draw = () => {                                   // only rebuild when something actually changed → taps never get lost
+    const nsig = JSON.stringify([tracks, [...shown]]); if (nsig === sig) return; sig = nsig;
+    $('#hList').innerHTML = tracks.length ? tracks.slice().reverse().map(([id, tx]) => `<div class="titem ${shown.has(id) ? 'shown' : ''}"><span class="tx">${esc(tx)}</span>
+      <button class="btn ${shown.has(id) ? 'white' : ''}" data-id="${esc(id)}">${shown.has(id) ? 'Hide' : 'Show'}</button></div>`).join('') : '<p class="mono">No songs yet.</p>';
   };
-  $('#hPrev').onclick = () => pub({t: 'nav', dir: -1});
-  $('#hNext').onclick = () => pub({t: 'nav', dir: 1});
-  $('#hAction').onclick = () => pub({t: 'nav', dir: 0});
-  $('#hAll').onclick = () => { Object.keys(tracks).forEach(id => shown.add(id)); pub({t: 'modall', sid}); draw() };
+  const sendH = (o, label) => { pub(o); status('⏳ ' + label + '…'); clearTimeout(waitT);
+    waitT = setTimeout(() => status('⚠ The laptop did not answer. Is the presentation open and online?', 'var(--coral)'), 6000) };
+  $('#hList').onclick = e => { const b = e.target.closest('[data-id]'); if (!b || !sid) return; const id = b.dataset.id, show = !shown.has(id);
+    show ? shown.add(id) : shown.delete(id); draw(); sendH({t: 'mod', sid, id, show}, show ? 'Showing on screen' : 'Hiding') };
+  $('#hPrev').onclick = () => sendH({t: 'nav', dir: -1}, 'Going back');
+  $('#hNext').onclick = () => sendH({t: 'nav', dir: 1}, 'Next slide');
+  $('#hAction').onclick = () => sendH({t: 'nav', dir: 0}, 'Play / reveal');
+  $('#hAll').onclick = () => { if (!sid) return; tracks.forEach(([id]) => shown.add(id)); draw(); sendH({t: 'modall', sid}, 'Showing all songs') };
   sub(m => {
-    if (m.t === 'stage') { if (sid !== m.sid) { sid = m.sid; for (const k in tracks) delete tracks[k]; shown.clear() } $('#hStage').textContent = `room ${m.sid} · stage: ${m.stage}${m.stage === 'guess' ? ' ' + (m.round + 1) : ''}` }
-    if (m.sid && m.sid !== sid) return;
-    if (m.t === 'track') tracks[m.id] = m.text;
-    if (m.t === 'mod') m.show ? shown.add(m.id) : shown.delete(m.id);
-    if (m.t === 'modall') Object.keys(tracks).forEach(id => shown.add(id));
-    draw();
-  }, () => {}, '6h');
+    if (m.t !== 'state' || m.at < lastAt) return; lastAt = m.at;
+    sid = m.sid; tracks = m.tracks || []; shown = new Set(m.shown || []);
+    $('#hStage').textContent = `slide ${m.idx + 1}/${m.total} · ${m.name} · ${m.joined} in room`;
+    clearTimeout(waitT); status('✓ In sync with the laptop', 'var(--green)'); draw();
+  }, ok => { $('#hLive').textContent = ok ? '● connected' : 'reconnecting…'; if (ok) pub({t: 'sync'}) }, '1m');
 }
 }
 </script>
-<script>if (!/#(join)$/.test(location.hash)) { const t = document.createElement('script'); t.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(t) }</script>
+<script>if (!/#(join|host-k7q2)$/.test(location.hash)) { const t = document.createElement('script'); t.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(t) }</script>
 </body>
 </html>
