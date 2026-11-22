@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MUSIC_MOOD.EXE — Using Music to Regulate Emotions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE: loud, playful, neubrutalist — a classroom experiment, not a lecture.
+IDEA: a retro desktop OS where every slide is an app window; the audience's phones are input devices.
+PICTURE: hard-shadow windows, sticker cards, live bar charts, a real-time equalizer.
+COLOUR/TYPE: cream grid paper, pure black structure, purple/lime/orange/blue/pink accents; Archivo Black + Space Grotesk + Space Mono.
+LAYOUT: full-screen 16:9 deck; phone view one calm column; host remote = big buttons.
+*/
+:root{
+  --bg:#F5F1EB;--ink:#0b0b0b;--white:#fff;
+  --purple:#DD7DFF;--lime:#E8FF3C;--yellow:#FFF503;--orange:#FFB443;--blue:#38DBFF;
+  --coral:#FF5D5D;--green:#00FF75;--pink:#FF6B8A;--navy:#1A1A2E;
+  --b:3px solid var(--ink);--sh:6px 6px 0 0 var(--ink);--sh-s:4px 4px 0 0 var(--ink);
+  --display:'Archivo Black',Impact,sans-serif;--ui:'Space Grotesk',system-ui,sans-serif;--mono:'Space Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:500 16px/1.5 var(--ui);overflow:hidden;
+  background-image:linear-gradient(rgba(0,0,0,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.06) 1px,transparent 1px);
+  background-size:28px 28px}
+button{font:inherit;color:inherit;cursor:pointer}
+img{display:block;max-width:100%}
+.hidden{display:none!important}
+
+/* ===== shared components ===== */
+.win{background:var(--white);border:var(--b);box-shadow:var(--sh);display:flex;flex-direction:column}
+.win>.bar{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;border-bottom:var(--b);background:var(--purple);font:700 clamp(12px,1vw,16px)/1 var(--mono)}
+.win>.bar .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win>.bar .ctl{display:flex;gap:6px}
+.win>.bar .ctl i{width:26px;height:26px;border:var(--b);border-width:2.5px;box-shadow:2px 2px 0 var(--ink);display:grid;place-items:center;font:700 13px/1 var(--mono);font-style:normal}
+.win>.bar .ctl i:nth-child(1){background:#e9e9e9}.win>.bar .ctl i:nth-child(2){background:var(--lime)}.win>.bar .ctl i:nth-child(3){background:var(--orange)}
+.win>.body{padding:clamp(14px,1.8vw,30px);flex:1;position:relative}
+.bar.lime{background:var(--lime)}.bar.blue{background:var(--blue)}.bar.orange{background:var(--orange)}.bar.pink{background:var(--pink)}.bar.green{background:var(--green)}.bar.yellow{background:var(--yellow)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:12px 22px;border:var(--b);box-shadow:var(--sh-s);background:var(--lime);
+  font:700 clamp(15px,1.2vw,20px)/1 var(--ui);text-transform:uppercase;letter-spacing:.02em;transition:box-shadow .15s,transform .15s;user-select:none;-webkit-tap-highlight-color:transparent}
+.btn:hover{box-shadow:2px 2px 0 var(--ink);transform:translate(2px,2px)}
+.btn:active,.btn.on{box-shadow:0 0 0 var(--ink);transform:translate(4px,4px)}
+.btn:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.btn.purple{background:var(--purple)}.btn.orange{background:var(--orange)}.btn.blue{background:var(--blue)}.btn.pink{background:var(--pink)}.btn.white{background:var(--white)}.btn.black{background:var(--ink);color:var(--white)}
+.tag{display:inline-block;border:2.5px solid var(--ink);padding:5px 10px;font:700 clamp(11px,.9vw,14px)/1 var(--mono);background:var(--yellow);box-shadow:2px 2px 0 var(--ink)}
+.photo{border:var(--b);box-shadow:var(--sh);background:#ddd center/cover no-repeat;position:relative}
+.photo .cr{position:absolute;right:6px;bottom:6px;background:var(--white);border:2px solid var(--ink);font:400 10px/1.2 var(--mono);padding:2px 5px}
+
+/* ===== deck ===== */
+#deck{position:fixed;inset:0;display:flex;flex-direction:column}
+.ticker{height:44px;border-bottom:var(--b);background:var(--ink);color:var(--lime);overflow:hidden;display:flex;align-items:center;flex:none}
+.ticker .track{display:flex;gap:40px;white-space:nowrap;font:700 18px/1 var(--mono);animation:tick 28s linear infinite;padding-left:40px}
+@keyframes tick{to{transform:translateX(-50%)}}
+#stage{flex:1;position:relative;overflow:hidden}
+.slide{position:absolute;inset:0;padding:clamp(20px,3vw,56px) clamp(24px,4vw,72px);display:none}
+.slide.active{display:block}
+.task{height:52px;border-top:var(--b);background:var(--white);display:flex;align-items:center;gap:12px;padding:0 12px;flex:none;font:700 14px/1 var(--mono)}
+.task .start{background:var(--lime);border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink);padding:8px 12px}
+.task .dots{display:flex;gap:6px;flex:1;justify-content:center}
+.task .dots b{width:14px;height:14px;border:2.5px solid var(--ink);background:var(--white);transition:background .2s}
+.task .dots b.on{background:var(--purple)}
+.task .live{display:flex;align-items:center;gap:8px}
+.task .live i{width:12px;height:12px;border-radius:50%;background:#bbb;border:2px solid var(--ink)}
+.task .live.ok i{background:var(--green);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{transform:scale(1.35)}}
+
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;line-height:1.02;text-wrap:balance}
+.mega{font-size:clamp(48px,8.4vw,150px);letter-spacing:-.01em}
+.big{font-size:clamp(36px,4.6vw,84px)}
+.mid{font-size:clamp(24px,2.6vw,46px)}
+.lead{font-size:clamp(17px,1.55vw,27px);line-height:1.35;max-width:36ch}
+.mono{font-family:var(--mono)}
+.hl{background:var(--lime);padding:0 .15em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hl.p{background:var(--purple)}.hl.o{background:var(--orange)}.hl.b{background:var(--blue)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(20px,3vw,56px);height:100%;align-items:center}
+.stack{display:flex;flex-direction:column;gap:clamp(12px,1.6vw,26px)}
+
+/* floating doodles */
+.float{position:absolute;pointer-events:none;z-index:0}
+.slide>*{position:relative;z-index:1}
+
+/* hook */
+#s-hook{display:none;place-items:center;text-align:center;background:var(--ink);color:var(--bg)}
+#s-hook.active{display:grid}
+#s-hook .q{max-width:18ch}
+#s-hook .ab{display:flex;gap:clamp(16px,3vw,48px);justify-content:center;margin-top:clamp(20px,3vw,48px);flex-wrap:wrap}
+#s-hook .ab .btn{min-width:min(36vw,360px);min-height:clamp(80px,11vh,130px);font-size:clamp(20px,2vw,34px)}
+#s-hook .reveal{margin-top:clamp(18px,2.5vw,40px);opacity:0}
+#s-hook .ab .btn{border-color:var(--bg);box-shadow:6px 6px 0 var(--bg)}
+#s-hook .ab .btn:active,#s-hook .ab .btn.on{box-shadow:0 0 0 var(--bg)}
+.eqmini{display:inline-flex;gap:3px;align-items:flex-end;height:22px}
+.eqmini i{width:5px;background:currentColor;height:30%;animation:eq 0.9s ease-in-out infinite}
+.eqmini i:nth-child(2){animation-delay:.15s}.eqmini i:nth-child(3){animation-delay:.3s}.eqmini i:nth-child(4){animation-delay:.45s}
+@keyframes eq{50%{height:100%}}
+
+/* title */
+#s-title .titlewin{max-width:1100px}
+#s-title .who{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+#s-title .cover{height:min(62vh,560px)}
+
+/* join */
+.qrbox{background:var(--white);border:var(--b);box-shadow:var(--sh);padding:clamp(10px,1.2vw,18px);display:grid;place-items:center;aspect-ratio:1;width:min(34vw,52vh)}
+.qrbox svg,.qrbox img{width:100%;height:100%}
+.url{font:700 clamp(14px,1.3vw,22px)/1.2 var(--mono);background:var(--yellow);border:var(--b);padding:8px 12px;box-shadow:var(--sh-s);word-break:break-all}
+.count{font:400 clamp(60px,7vw,130px)/1 var(--display)}
+.moodbars{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:end;height:clamp(110px,18vh,200px)}
+.moodbars .c{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.moodbars .c b{width:100%;border:var(--b);background:var(--blue);height:4%;transition:height .5s cubic-bezier(.3,1.6,.5,1)}
+.moodbars .c span{font-size:clamp(20px,2vw,34px);line-height:1}
+.moodbars .c em{font:700 13px/1 var(--mono);font-style:normal}
+
+/* brain */
+.factcard{background:var(--white);border:var(--b);box-shadow:var(--sh);padding:clamp(14px,1.6vw,26px)}
+.factcard .src{font:400 clamp(11px,.85vw,14px)/1.35 var(--mono);margin-top:10px;opacity:.85}
+.timeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.timeline>div{border:var(--b);padding:12px;box-shadow:var(--sh-s);font-size:clamp(13px,1.05vw,18px);line-height:1.3}
+.timeline b{display:block;font:400 clamp(16px,1.5vw,26px)/1.05 var(--display);margin-bottom:6px}
+
+/* guess */
+.guessgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(18px,2.6vw,48px);height:100%;align-items:stretch}
+.player{display:flex;flex-direction:column;gap:18px;height:100%}
+.player .win{flex:1}
+.player .body{display:flex;flex-direction:column;gap:16px;justify-content:center;align-items:center}
+canvas.eq{width:100%;height:clamp(120px,22vh,240px);border:var(--b);background:var(--ink)}
+.playbig{width:clamp(110px,10vw,170px);height:clamp(110px,10vw,170px);border-radius:0;font-size:clamp(40px,4vw,70px)!important}
+.votes{display:flex;flex-direction:column;gap:clamp(10px,1.4vh,18px);justify-content:center;height:100%}
+.vrow{display:grid;grid-template-columns:minmax(0,13em) minmax(0,1fr) 4.2em;gap:12px;align-items:center;font:700 clamp(15px,1.4vw,24px)/1 var(--ui)}
+.vrow .bg{height:clamp(34px,5vh,54px);border:var(--b);background:var(--white);position:relative;overflow:hidden}
+.vrow .fill{position:absolute;inset:0 auto 0 0;width:0;transition:width .6s cubic-bezier(.3,1.4,.5,1);border-right:var(--b)}
+.vrow .pct{text-align:right;font-family:var(--mono)}
+.vrow.win-row .lab{background:var(--ink);color:var(--lime);padding:6px 8px}
+.vrow.dim{opacity:.35}
+.explain{opacity:0}
+.explain .photo{height:clamp(110px,18vh,200px)}
+
+/* cheat */
+.cheat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(14px,1.8vw,30px);margin-top:clamp(18px,3vh,40px)}
+.cheat .win .photo{height:clamp(90px,16vh,180px);box-shadow:none;border-width:0 0 3px 0}
+.cheat .win .body{padding:clamp(12px,1.3vw,20px)}
+.cheat h3{font-size:clamp(20px,1.9vw,34px);margin-bottom:8px}
+.cheat p{margin:0 0 8px;font-size:clamp(13px,1.05vw,18px);line-height:1.35}
+
+/* wall */
+#wall{position:relative;height:calc(100% - clamp(80px,11vh,120px));margin-top:12px}
+.sticker{position:absolute;border:var(--b);box-shadow:var(--sh);padding:12px 16px 12px 14px;font:700 clamp(15px,1.4vw,24px)/1.15 var(--ui);max-width:min(26vw,360px);cursor:pointer;display:flex;align-items:center;gap:12px;transition:box-shadow .15s}
+.sticker:hover{box-shadow:2px 2px 0 var(--ink)}
+.sticker .pl{flex:none;width:38px;height:38px;border:2.5px solid var(--ink);background:var(--white);display:grid;place-items:center;font-size:16px}
+.sticker.played .pl{background:var(--ink);color:var(--lime)}
+.empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font:700 clamp(16px,1.5vw,24px)/1.4 var(--mono);opacity:.6}
+
+/* modal */
+#modal{position:fixed;inset:0;background:rgba(11,11,11,.55);display:grid;place-items:center;z-index:50;padding:20px}
+#modal .win{width:min(920px,96vw)}
+#modal .frame{aspect-ratio:16/9;border:var(--b);background:var(--ink);display:grid;place-items:center;color:var(--lime);font:700 16px/1.4 var(--mono);text-align:center;padding:20px}
+#modal iframe{width:100%;height:100%;border:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input.in{font:500 16px/1.2 var(--ui);border:var(--b);padding:12px 14px;min-height:50px;background:var(--white);box-shadow:inset 3px 3px 0 rgba(0,0,0,.08);flex:1}
+input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
+.timerbar{height:10px;border:2.5px solid var(--ink);background:var(--white);margin-top:10px}
+.timerbar b{display:block;height:100%;width:0;background:var(--pink)}
+
+/* after */
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,2.4vw,40px);align-items:end;height:clamp(200px,40vh,420px)}
+.compare .c{display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:10px}
+.compare .col{border:var(--b);box-shadow:var(--sh);height:2%;display:flex;align-items:flex-start;justify-content:center;padding-top:10px;font:400 clamp(28px,3vw,56px)/1 var(--display);transition:height 1.2s cubic-bezier(.3,1.3,.5,1)}
+.compare .lab{font:700 clamp(14px,1.2vw,20px)/1 var(--mono);text-align:center}
+.delta{font:400 clamp(60px,9vw,170px)/1 var(--display)}
+
+/* end */
+.plists{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(14px,2vw,32px)}
+.plists .win .body{display:flex;flex-direction:column;gap:6px}
+.plists h3{font-size:clamp(22px,2.4vw,44px)}
+
+/* ===== phone ===== */
+#phone{position:fixed;inset:0;overflow-y:auto;padding:16px 16px 40px;overflow-x:hidden}
+#phone .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+#phone .head{display:flex;justify-content:space-between;align-items:center;font:700 14px/1 var(--mono)}
+#phone h2{font-size:clamp(28px,8vw,40px)}
+#phone .moods{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+#phone .moods .btn{min-height:72px;padding:6px;font-size:30px;flex-direction:column;gap:4px;background:var(--white)}
+#phone .moods .btn small{font:700 10px/1 var(--mono)}
+#phone .moods .btn.on{background:var(--lime)}
+#phone .choices{display:grid;gap:12px}
+#phone .choices .btn{min-height:76px;font-size:20px;justify-content:flex-start;padding-left:18px}
+#phone .choices .btn.on{outline:4px solid var(--ink);outline-offset:3px}
+#phone .ok{font:700 14px/1.4 var(--mono);background:var(--green);border:var(--b);padding:10px 12px;box-shadow:var(--sh-s)}
+#phone .wait{text-align:center;padding:30px 10px}
+#phone .wait .eqmini{height:60px;color:var(--purple)}
+#phone .wait .eqmini i{width:16px}
+#phone .sent{display:flex;flex-wrap:wrap;gap:8px}
+#phone .sent span{border:2.5px solid var(--ink);padding:4px 8px;background:var(--yellow);font:700 13px/1.2 var(--mono)}
+
+/* ===== host ===== */
+#host{position:fixed;inset:0;overflow-y:auto;padding:14px}
+#host .wrap{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+#host .nav{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#host .nav .btn{min-height:90px;font-size:26px}
+#host .titem{display:flex;gap:10px;align-items:center;border:var(--b);background:var(--white);padding:10px;box-shadow:var(--sh-s)}
+#host .titem .tx{flex:1;font-weight:700;overflow-wrap:anywhere}
+#host .titem.shown{background:var(--lime)}
+#host .titem .btn{min-height:44px;padding:8px 12px;font-size:14px}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:900px){
+  body{overflow:auto}
+  .grid2,.guessgrid{grid-template-columns:minmax(0,1fr);height:auto}
+  .cheat{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ DECK (projector) ============================ -->
+<div id="deck" class="hidden">
+  <div class="ticker"><div class="track" id="tickerTrack"></div></div>
+  <div id="stage">
+
+    <!-- 1. HOOK -->
+    <section class="slide" id="s-hook" data-stage="hook">
+      <div>
+        <p class="mono" style="color:var(--lime);font-size:clamp(14px,1.2vw,20px);margin:0 0 14px">// experiment_00.wav — before I say anything</p>
+        <h1 class="big q">Close your eyes. <span style="color:var(--lime)">Just listen.</span></h1>
+        <div class="ab">
+          <button class="btn purple" id="hookA">▶ Sound A</button>
+          <button class="btn" id="hookB">▶ Sound B</button>
+        </div>
+        <div class="reveal" id="hookReveal">
+          <h2 class="mid">Same room. Same people. 10 seconds.<br><span class="hl" style="color:var(--ink)">Completely different feelings.</span></h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TITLE -->
+    <section class="slide" id="s-title" data-stage="hook">
+      <div class="grid2">
+        <div class="stack">
+          <span class="tag" style="align-self:flex-start">PSYCHOLOGY · LIVE EXPERIMENT</span>
+          <h1 class="mega">Music is a <span class="hl p">remote control</span> for your mood</h1>
+          <p class="lead">Using music to regulate emotions — and testing it on <b>this room</b>, right now.</p>
+          <div class="who"><span class="tag" style="background:var(--white)">Yerzhanuly Dinmukhammed</span><span class="tag" style="background:var(--orange)">SDU · 04-P</span></div>
+        </div>
+        <div class="win cover">
+          <div class="bar"><span class="t">music_mood.exe</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
+          <div class="body" style="padding:0"><div class="photo" data-img="1613040809024-b4ef7ba99bc3" data-cr="ervorocks / Unsplash" style="height:100%;border:0;box-shadow:none"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. JOIN + MOOD BEFORE -->
+    <section class="slide" id="s-join" data-stage="before">
+      <div class="grid2">
+        <div class="stack">
+          <span class="tag" style="align-self:flex-start;background:var(--green)">STEP 1 · TAKE OUT YOUR PHONE</span>
+          <h1 class="big">Scan. Then tell us two things:</h1>
+          <p class="lead"><span class="hl">① How do you feel right now?</span><br><span class="hl p">② What do you listen to when you're stressed?</span></p>
+          <div class="win">
+            <div class="bar blue"><span class="t">live_mood_meter — BEFORE</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
+            <div class="body"><div class="moodbars" id="mbBefore"></div></div>
+          </div>
+        </div>
+        <div class="stack" style="align-items:center">
+          <div class="qrbox" id="qr1"></div>
+          <div class="url" id="url1"></div>
+          <div class="row" style="justify-content:center;gap:24px">
+            <div style="text-align:center"><div class="count" id="cJoined">0</div><div class="mono">in the room</div></div>
+            <div style="text-align:center"><div class="count" id="cTracks" style="color:var(--purple);-webkit-text-stroke:3px var(--ink)">0</div><div class="mono">songs received</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. BRAIN -->
+    <section class="slide" id="s-brain" data-stage="wait">
+      <div class="grid2">
+        <div class="stack">
+          <span class="tag" style="align-self:flex-start;background:var(--blue)">WHY IT WORKS</span>
+          <h1 class="big">Your brain treats a great song like a <span class="hl o">reward</span></h1>
+          <div class="factcard">
+            <p class="lead" style="max-width:none;margin:0">Brain scans showed <b>dopamine</b> — the "reward" chemical — released at the <b>peak moment</b> of people's favourite songs. Even <b>waiting</b> for the best part triggered it.</p>
+            <div class="src">Salimpoor et al., Nature Neuroscience 14, 257–262 (2011) · McGill University</div>
+          </div>
+          <div class="timeline">
+            <div style="background:var(--white)"><b>Calm part</b>baseline — nothing special yet</div>
+            <div style="background:var(--yellow)"><b>Build-up</b>anticipation → dopamine starts</div>
+            <div style="background:var(--lime)"><b>The drop</b>peak pleasure → chills, goosebumps</div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="win"><div class="bar pink"><span class="t">brain.scan</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
+            <div class="body" style="padding:0"><div class="photo" data-img="1507413245164-6160d8298b31" data-cr="halacious / Unsplash" style="height:min(30vh,300px);border:0;box-shadow:none"></div></div></div>
+          <div class="win"><div class="bar orange"><span class="t">goosebumps.jpg</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
+            <div class="body" style="padding:0"><div class="photo" data-img="1790093848724-87895c4098e9" data-cr="cherstve_pechivo / Unsplash" style="height:min(22vh,220px);border:0;box-shadow:none"></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5-8. GUESS ROUNDS (generated) -->
+    <div id="guessSlot"></div>
+
+    <!-- 9. CHEAT SHEET -->
+    <section class="slide" id="s-cheat" data-stage="wait">
+      <span class="tag" style="background:var(--lime)">SAVE THIS · SCREENSHOT IT</span>
+      <h1 class="big" style="margin-top:12px">Feeling → what to press play on</h1>
+      <div class="cheat" id="cheat"></div>
+    </section>
+
+    <!-- 10. WALL -->
+    <section class="slide" id="s-wall" data-stage="wall">
+      <div class="row" style="justify-content:space-between;align-items:flex-end">
+        <div><span class="tag" style="background:var(--pink)">YOUR STRESS PLAYLIST</span>
+        <h1 class="big" style="margin-top:10px">This is what <span class="hl">this room</span> plays when stressed</h1></div>
+        <div class="mono" style="text-align:right">click a sticker → play the best part<br><span id="wallCount">0</span> songs on the wall</div>
+      </div>
+      <div id="wall"><div class="empty" id="wallEmpty">waiting for approved songs…<br>host: approve from your phone or press A</div></div>
+    </section>
+
+    <!-- 11. AFTER -->
+    <section class="slide" id="s-after" data-stage="after">
+      <div class="grid2">
+        <div class="stack">
+          <span class="tag" style="align-self:flex-start;background:var(--green)">STEP 2 · SAME QUESTION AGAIN</span>
+          <h1 class="big">How do you feel <span class="hl p">now?</span></h1>
+          <p class="lead">Vote on your phone. Then we compare the room <b>before</b> and <b>after</b> 8 minutes of music.</p>
+          <div class="win"><div class="bar blue"><span class="t">live_mood_meter — AFTER</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
+            <div class="body"><div class="moodbars" id="mbAfter"></div></div></div>
+          <div class="row"><button class="btn purple" id="showResult">▶ Show the result</button><span class="mono">(or press R)</span></div>
+        </div>
+        <div class="stack" id="resultBox">
+          <div class="compare">
+            <div class="c"><div class="col" id="colB" style="background:var(--white)">–</div><div class="lab">BEFORE</div></div>
+            <div class="c"><div class="col" id="colA" style="background:var(--lime)">–</div><div class="lab">AFTER</div></div>
+          </div>
+          <div class="row" style="align-items:baseline;gap:16px"><div class="delta" id="delta">±0.0</div><div class="mono" id="deltaTxt" style="max-width:22ch">average mood change (1–5 scale)</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. END -->
+    <section class="slide" id="s-end" data-stage="end">
+      <div class="stack" style="height:100%;justify-content:center">
+        <span class="tag" style="align-self:flex-start">YOUR CHALLENGE THIS WEEK</span>
+        <h1 class="big">Build <span class="hl">3 playlists</span>. Use them on purpose.</h1>
+        <div class="plists">
+          <div class="win"><div class="bar blue"><span class="t">calm.m3u</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div><div class="body"><h3>CALM</h3><p class="mono">slow · 60–80 BPM · no lyrics<br>→ before exams, before sleep</p></div></div>
+          <div class="win"><div class="bar orange"><span class="t">charge.m3u</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div><div class="body"><h3>CHARGE</h3><p class="mono">fast · 120+ BPM · strong beat<br>→ gym, mornings, low energy</p></div></div>
+          <div class="win"><div class="bar lime"><span class="t">focus.m3u</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div><div class="body"><h3>FOCUS</h3><p class="mono">steady · instrumental · lo-fi<br>→ reading, coding, homework</p></div></div>
+        </div>
+        <div class="row" style="justify-content:space-between;margin-top:10px">
+          <h2 class="mid">Thank you! <span class="hl p">Questions?</span></h2>
+          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · all sounds generated live in the browser</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <div class="task">
+    <span class="start">♪ START</span>
+    <span id="slideName" class="mono">hook</span>
+    <div class="dots" id="dots"></div>
+    <span class="live" id="liveDot"><i></i><span id="liveTxt">connecting…</span></span>
+  </div>
+</div>
+
+<!-- modal: play best part -->
+<div id="modal" class="hidden">
+  <div class="win">
+    <div class="bar pink"><span class="t" id="mTitle">best_part.mp4</span><span class="ctl"><i>–</i><i>□</i><button id="mClose" style="all:unset;cursor:pointer"><i style="width:26px;height:26px;border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink);display:grid;place-items:center;background:var(--orange);font:700 13px/1 var(--mono)">×</i></button></span></div>
+    <div class="body stack">
+      <div class="frame" id="mFrame">Paste a YouTube link below → plays from the best part</div>
+      <div class="timerbar"><b id="mTimer"></b></div>
+      <div class="row">
+        <input class="in" id="mLink" placeholder="YouTube link (youtu.be/… or youtube.com/watch?v=…)">
+        <input class="in" id="mStart" type="number" min="0" value="45" style="flex:0 0 110px" aria-label="start second">
+        <button class="btn" id="mPlay">▶ Play 20s</button>
+      </div>
+      <div class="row mono" style="font-size:13px"><a id="mSearch" target="_blank" rel="noopener">🔎 find it on YouTube (new tab)</a><span>· links are remembered on this laptop</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ PHONE ============================ -->
+<div id="phone" class="hidden">
+  <div class="wrap">
+    <div class="head"><span class="tag" style="background:var(--purple)">music_mood.exe</span><span class="live" id="pLive"><span id="pLiveTxt">connecting…</span></span></div>
+    <div id="pView"></div>
+  </div>
+</div>
+
+<!-- ============================ HOST ============================ -->
+<div id="host" class="hidden">
+  <div class="wrap">
+    <div class="win"><div class="bar"><span class="t">host_remote.exe</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
+      <div class="body stack">
+        <div class="mono" id="hStage">stage: —</div>
+        <div class="nav"><button class="btn white" id="hPrev">◀ Back</button><button class="btn" id="hNext">Next ▶</button></div>
+        <button class="btn purple" id="hAction">▶ Play / Reveal</button>
+      </div></div>
+    <div class="row" style="justify-content:space-between"><h2 class="mid">Songs</h2><button class="btn blue" id="hAll">Show all</button></div>
+    <div id="hList" class="stack"><p class="mono">No songs yet.</p></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+{
+/* ================= config ================= */
+const TOPIC = 'musicmood-yd04p-k7q2x9';      // public ntfy.sh channel — random so nobody else lands in it
+const HOST_HASH = 'host-k7q2';               // open …/#host-k7q2 on YOUR phone for the remote
+const NTFY = 'https://ntfy.sh/' + TOPIC;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const IMG = (id, w = 1100) => `https://images.unsplash.com/photo-${id}?w=${w}&q=70&auto=format&fit=crop`;
+const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v) } catch { return d } },
+                set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch {} } };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MOODS = [['😫','awful'],['😕','meh'],['😐','okay'],['🙂','good'],['😄','great']];
+const EMO = {
+  calm:  {label:'😌 Calm',   color:'var(--blue)'},
+  energy:{label:'⚡ Energy', color:'var(--orange)'},
+  sad:   {label:'🌧 Sad',    color:'var(--purple)'},
+  focus: {label:'📚 Focus',  color:'var(--lime)'}
+};
+const ROUNDS = [
+  {key:'energy', bar:'orange', img:'1723117417817-a122a6d202d5', cr:'goldsgymnepal / Unsplash',
+   why:'Fast tempo (~128 BPM) + a strong kick on every beat. Your heart rate and body want to sync with the rhythm — that\'s why gym playlists are fast.'},
+  {key:'sad', bar:'purple', img:'1511634829096-045a111727eb', cr:'cg / Unsplash',
+   why:'Minor key + slow tempo. Sad songs don\'t always make you sadder — they can make you feel understood. Therapists start by matching your mood, then shift it up.'},
+  {key:'calm', bar:'blue', img:'1718382341267-aef8a9e4ecef', cr:'cipriann / Unsplash',
+   why:'Slow (~65 BPM), soft, long notes, no sudden changes. Close to a resting heartbeat — it tells your body there\'s no danger.'},
+  {key:'focus', bar:'lime', img:'1741699428220-65f37f3fbbcb', cr:'zoshuacolah / Unsplash',
+   why:'Steady, repetitive, no lyrics. Lyrics compete with the words you\'re reading; a predictable loop keeps you in the zone without grabbing attention.'}
+];
+const CHEAT = [
+  {t:'Stressed', bar:'blue', img:'1718382341267-aef8a9e4ecef', p:'Slow, 60–80 BPM, no lyrics. Breathe out longer than in.', tag:'→ CALM'},
+  {t:'Tired', bar:'orange', img:'1723117417817-a122a6d202d5', p:'Upbeat, 120+ BPM. Start medium, go faster.', tag:'→ CHARGE'},
+  {t:'Sad', bar:'purple', img:'1511634829096-045a111727eb', p:'Let one sad song in first. Then go slightly happier, step by step.', tag:'→ MATCH, THEN LIFT'},
+  {t:'Studying', bar:'lime', img:'1617300040847-369dee9d35f1', p:'Instrumental or lo-fi, steady. Lyrics fight with reading.', tag:'→ FOCUS'}
+];
+
+/* ================= realtime (ntfy.sh, no login) ================= */
+const pub = obj => fetch(NTFY, {method:'POST', body: JSON.stringify(obj)}).catch(() => {});
+function sub(onMsg, onState, since = '3h') {
+  let es, retry = 0;
+  const open = () => {
+    es = new EventSource(`${NTFY}/sse?since=${since}`);
+    es.onopen = () => { retry = 0; onState(true) };
+    es.onmessage = e => { try { const m = JSON.parse(e.data); if (m.event === 'message') onMsg(JSON.parse(m.message), m.time, m.id) } catch {} };
+    es.onerror = () => { onState(false); es.close(); setTimeout(open, Math.min(8000, 1000 * ++retry)) };
+  };
+  open();
+}
+
+/* ================= synthesized music (Web Audio) ================= */
+let AC, master, analyser, playing = null;
+function audio() {
+  if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = .8;
+    analyser = AC.createAnalyser(); analyser.fftSize = 256; master.connect(analyser); analyser.connect(AC.destination); }
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+const hz = n => 440 * 2 ** ((n - 69) / 12);
+function tone(out, t, f, d, {type='sine', g=.2, a=.01, r=.2, lp=0, det=0} = {}) {
+  const o = AC.createOscillator(), v = AC.createGain(); o.type = type; o.frequency.value = f; o.detune.value = det;
+  v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(g, t + a); v.gain.setValueAtTime(g, t + Math.max(a, d - r)); v.gain.linearRampToValueAtTime(0, t + d);
+  let n = o; if (lp) { const fl = AC.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = lp; o.connect(fl); n = fl }
+  n.connect(v); v.connect(out); o.start(t); o.stop(t + d + .05);
+}
+let noiseBuf;
+function noise(out, t, d, g = .1, hp = 6000) {
+  if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const ch = noiseBuf.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1 }
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), v = AC.createGain(); s.buffer = noiseBuf; f.type = 'highpass'; f.frequency.value = hp;
+  v.gain.setValueAtTime(g, t); v.gain.exponentialRampToValueAtTime(.001, t + d); s.connect(f); f.connect(v); v.connect(out); s.start(t); s.stop(t + d + .02);
+}
+function kick(out, t, g = .9) {
+  const o = AC.createOscillator(), v = AC.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(40, t + .12);
+  v.gain.setValueAtTime(g, t); v.gain.exponentialRampToValueAtTime(.001, t + .3); o.connect(v); v.connect(out); o.start(t); o.stop(t + .32);
+}
+const SONGS = {
+  creepy(o, t) { // dissonant drone + screeches
+    tone(o, t, 55, 9, {type:'sawtooth', g:.25, a:1.5, r:1.5, lp:300}); tone(o, t, 58.3, 9, {type:'sawtooth', g:.2, a:2, r:1.5, lp:280});
+    for (let i = 0; i < 7; i++) tone(o, t + 1 + i * 1.1 + Math.random() * .4, 1700 + Math.random() * 900, .7, {g:.05, a:.3, r:.3, det: 40});
+    [0, 2.5, 5, 7.3].forEach(x => { tone(o, t + x, hz(37), 1.2, {type:'triangle', g:.35, a:.005, r:1}); });
+  },
+  happy(o, t) { // bouncy C major
+    const b = 60 / 140, mel = [72,76,79,84,79,76,77,81,84,81,77,74,76,79,83,86];
+    for (let i = 0; i < 32; i++) { const x = t + i * b / 2; tone(o, x, hz(mel[i % 16]), b * .45, {type:'triangle', g:.17, r:.08});
+      if (i % 2 === 0) kick(o, x, .5); if (i % 2 === 1) noise(o, x, .06, .06); }
+    [[48,52,55],[53,57,60],[55,59,62],[48,52,55]].forEach((c, i) => c.forEach(n => tone(o, t + i * b * 4, hz(n), b * 4, {type:'square', g:.04, lp:1800})));
+  },
+  energy(o, t) {
+    const b = 60 / 128, bass = [36,36,39,41];
+    for (let i = 0; i < 20; i++) { const x = t + i * b; kick(o, x); noise(o, x + b / 2, .08, .12); if (i % 2) noise(o, x, .18, .08, 2500);
+      tone(o, x + b / 2, hz(bass[Math.floor(i / 4) % 4]), b * .45, {type:'sawtooth', g:.22, lp:900, r:.05}); }
+    for (let i = 0; i < 40; i++) tone(o, t + 4 * b * 2 + i * b / 4, hz([60,63,67,72][i % 4]), b * .2, {type:'square', g:.05, lp:3000, r:.03});
+  },
+  sad(o, t) {
+    const b = 60 / 62, prog = [[57,60,64],[53,57,60],[50,53,57],[52,56,59]], mel = [76,74,72,71, 72,69,72,74, 77,76,74,72, 71,68,69,null];
+    prog.forEach((c, i) => c.forEach(n => tone(o, t + i * b * 2.5, hz(n), b * 2.5, {type:'sine', g:.09, a:.3, r:1})));
+    mel.forEach((n, i) => n && tone(o, t + i * b * .62, hz(n), b * .9, {type:'triangle', g:.13, a:.01, r:.7}));
+  },
+  calm(o, t) {
+    const b = 60 / 65, ch = [[48,55,64,71],[45,52,60,67],[41,48,57,64],[43,50,59,62]];
+    ch.forEach((c, i) => c.forEach((n, k) => tone(o, t + i * b * 2.6 + k * .05, hz(n), b * 3, {type:'sine', g:.07, a:1.1, r:1.4})));
+    [79,76,74,72,74,76].forEach((n, i) => tone(o, t + 1.2 + i * 1.6, hz(n), 1.8, {type:'sine', g:.05, a:.4, r:1.2}));
+  },
+  focus(o, t) {
+    const b = 60 / 84, arp = [62,65,69,72,76,72,69,65];
+    for (let i = 0; i < 28; i++) tone(o, t + i * b / 2, hz(arp[i % 8]), b * .45, {type:'square', g:.045, lp:1400, r:.1});
+    for (let i = 0; i < 7; i++) { kick(o, t + i * b * 2, .35); noise(o, t + i * b * 2 + b, .05, .05, 4000); }
+    for (let i = 0; i < 50; i++) noise(o, t + Math.random() * 10, .01, .03, 2000); // vinyl crackle
+  }
+};
+const SONG_LEN = {creepy:9.5, happy:9.5, energy:10, sad:10, calm:10.5, focus:10};
+function playSong(name, onEnd) {
+  audio(); stopSong();
+  const bus = AC.createGain(); bus.connect(master); const t = AC.currentTime + .05;
+  SONGS[name](bus, t);
+  const tm = setTimeout(() => { try { bus.gain.setTargetAtTime(0, AC.currentTime, .08); setTimeout(() => bus.disconnect(), 500) } catch {} playing = null; onEnd && onEnd() }, SONG_LEN[name] * 1000);
+  playing = {bus, tm, name};
+}
+function stopSong() { if (!playing) return; clearTimeout(playing.tm); const b = playing.bus; try { b.gain.setTargetAtTime(0, AC.currentTime, .05); setTimeout(() => b.disconnect(), 400) } catch {} playing = null; }
+
+/* ================= ROUTER ================= */
+const mode = location.hash === '#join' ? 'phone' : location.hash === '#' + HOST_HASH ? 'host' : 'deck';
+$('#' + mode).classList.remove('hidden');
+if (mode === 'deck') initDeck(); else if (mode === 'phone') initPhone(); else initHost();
+addEventListener('hashchange', () => location.reload());
+
+/* ================= DECK ================= */
+function initDeck() {
+  // ticker
+  const words = 'MUSIC ✦ MOOD ✦ DOPAMINE ✦ CALM ✦ ENERGY ✦ FOCUS ✦ CHILLS ✦ PLAYLIST ✦ ';
+  $('#tickerTrack').innerHTML = `<span>${words.repeat(6)}</span><span>${words.repeat(6)}</span>`;
+  // photos
+  $$('.photo[data-img]').forEach(p => { p.style.backgroundImage = `url(${IMG(p.dataset.img)})`; if (p.dataset.cr) p.insertAdjacentHTML('beforeend', `<span class="cr">${p.dataset.cr}</span>`) });
+  // guess slides
+  $('#guessSlot').outerHTML = ROUNDS.map((r, i) => `
+    <section class="slide guess" data-stage="guess" data-round="${i}">
+      <div class="guessgrid">
+        <div class="player">
+          <div class="row" style="justify-content:space-between"><span class="tag" style="background:var(--${r.bar})">GAME · ROUND ${i + 1}/4</span><span class="mono">vote on your phone</span></div>
+          <h1 class="big" style="font-size:clamp(30px,3.6vw,64px)">Guess the emotion</h1>
+          <div class="win"><div class="bar ${r.bar === 'purple' ? '' : r.bar}"><span class="t">round_${i + 1}.wav</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
+            <div class="body"><canvas class="eq"></canvas>
+              <div class="row" style="justify-content:center;gap:16px"><button class="btn playbig" data-play="${i}">▶</button>
+              <div class="mono" style="max-width:20ch">Space = play<br>R = reveal answer</div></div></div></div>
+        </div>
+        <div class="stack" style="justify-content:center">
+          <div class="votes">${Object.keys(EMO).map(k => `<div class="vrow" data-k="${k}"><span class="lab">${EMO[k].label}</span><div class="bg"><div class="fill" style="background:${EMO[k].color}"></div></div><span class="pct">0%</span></div>`).join('')}</div>
+          <div class="mono" style="text-align:right"><span class="vn">0</span> votes</div>
+          <div class="explain factcard" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:14px;align-items:center">
+            <div class="photo" style="background-image:url(${IMG(r.img, 700)})"><span class="cr">${r.cr}</span></div>
+            <p style="margin:0;font-size:clamp(14px,1.15vw,20px);line-height:1.35"><b>${EMO[r.key].label} — why?</b><br>${r.why}</p>
+          </div>
+        </div>
+      </div>
+    </section>`).join('');
+  $('#cheat').innerHTML = CHEAT.map(c => `<div class="win"><div class="bar ${c.bar === 'purple' ? '' : c.bar}"><span class="t">${c.t.toLowerCase()}.txt</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div>
+    <div class="photo" style="background-image:url(${IMG(c.img, 600)})"></div><div class="body"><h3>${c.t}</h3><p>${c.p}</p><span class="tag">${c.tag}</span></div></div>`).join('');
+  [$('#mbBefore'), $('#mbAfter')].forEach(el => el.innerHTML = MOODS.map((m, i) => `<div class="c"><em>0</em><b></b><span>${m[0]}</span></div>`).join(''));
+
+  const slides = $$('.slide');
+  $('#dots').innerHTML = slides.map(() => '<b></b>').join('');
+  const joinUrl = location.href.split('#')[0] + '#join';
+  ['#url1'].forEach(s => $(s).textContent = joinUrl.replace(/^https?:\/\//, ''));
+  try { const q = qrcode(0, 'M'); q.addData(joinUrl); q.make(); $('#qr1').innerHTML = q.createSvgTag({cellSize: 8, margin: 1, scalable: true}) } catch { $('#qr1').textContent = 'QR library failed — show the link' }
+
+  /* --- state --- */
+  let sid = store.get('mm_sid', null);
+  if (!sid) { sid = Math.random().toString(36).slice(2, 8); store.set('mm_sid', sid) }
+  const S = {joined: new Set(), before: {}, after: {}, guess: [{}, {}, {}, {}], tracks: {}, shown: new Set()};
+  const links = store.get('mm_links', {});
+  let cur = 0;
+
+  /* --- navigation --- */
+  function go(n, anim = true) {
+    n = Math.max(0, Math.min(slides.length - 1, n)); if (n === cur && anim) return;
+    const prev = slides[cur], next = slides[n], dir = n > cur ? 1 : -1;
+    stopSong(); prev.classList.remove('active'); next.classList.add('active'); cur = n;
+    $$('#dots b').forEach((b, i) => b.classList.toggle('on', i <= n));
+    $('#slideName').textContent = (next.id || 'round_' + (+next.dataset.round + 1)).replace('s-', '');
+    if (anim && window.gsap) {
+      gsap.fromTo(next, {x: dir * 120, opacity: 0, rotate: dir * 1.2}, {x: 0, opacity: 1, rotate: 0, duration: .55, ease: 'back.out(1.6)'});
+      gsap.from(next.querySelectorAll('.tag,h1,h2,.lead,.win,.factcard:not(.explain),.qrbox,.timeline>div,.vrow,.btn,.count'), {y: 40, opacity: 0, duration: .5, stagger: .05, ease: 'back.out(2)', delay: .1, clearProps: 'transform,opacity'});
+    }
+    onEnter(next);
+    broadcastStage();
+  }
+  function broadcastStage() {
+    const s = slides[cur]; pub({t: 'stage', sid, stage: s.dataset.stage, round: +(s.dataset.round || 0), at: Date.now()});
+  }
+  function onEnter(s) {
+    if (s.id === 's-wall') renderWall(true);
+    if (s.id === 's-after') { $('#resultBox').style.visibility = 'hidden' }
+    if (s.classList.contains('guess')) { s.querySelector('.explain').style.opacity = 0; s.querySelectorAll('.vrow').forEach(r => r.classList.remove('win-row', 'dim')); renderGuess(+s.dataset.round) }
+  }
+  const action = () => {
+    const s = slides[cur];
+    if (s.classList.contains('guess')) { const b = s.querySelector('[data-play]'); if (!playing) b.click(); else reveal(); }
+    else if (s.id === 's-after') showResult();
+    else if (s.id === 's-hook') (!$('#hookA').classList.contains('on') ? $('#hookA') : $('#hookB')).click();
+  };
+  addEventListener('keydown', e => {
+    if (!$('#modal').classList.contains('hidden')) { if (e.key === 'Escape') closeModal(); return }
+    if (['ArrowRight', 'PageDown', 'ArrowDown'].includes(e.key)) { e.preventDefault(); go(cur + 1) }
+    else if (['ArrowLeft', 'PageUp', 'ArrowUp'].includes(e.key)) { e.preventDefault(); go(cur - 1) }
+    else if (e.key === ' ') { e.preventDefault(); const s = slides[cur]; if (s.classList.contains('guess')) s.querySelector('[data-play]').click(); else action() }
+    else if (e.key.toLowerCase() === 'r') { const s = slides[cur]; if (s.classList.contains('guess')) reveal(); else if (s.id === 's-after') showResult() }
+    else if (e.key.toLowerCase() === 'a') { Object.keys(S.tracks).forEach(id => S.shown.add(id)); renderWall() }
+    else if (e.key.toLowerCase() === 'd') demo();
+    else if (e.key === 'N' && e.shiftKey) { store.set('mm_sid', null); location.reload() }
+  });
+
+  /* --- hook --- */
+  let heard = 0;
+  const hookPlay = (btn, song) => { btn.classList.add('on'); gsap.to('#s-hook', {backgroundColor: song === 'creepy' ? '#120414' : '#1d1400', duration: .8});
+    btn.innerHTML = `<span class="eqmini"><i></i><i></i><i></i><i></i></span> playing…`;
+    playSong(song, () => { btn.innerHTML = song === 'creepy' ? '✓ Sound A' : '✓ Sound B'; if (++heard >= 2) { gsap.to('#hookReveal', {opacity: 1, y: 0, duration: .6, ease: 'back.out(2)'}); gsap.to('#s-hook', {backgroundColor: '#0b0b0b', duration: .8}) } }); };
+  $('#hookA').onclick = () => hookPlay($('#hookA'), 'creepy');
+  $('#hookB').onclick = () => hookPlay($('#hookB'), 'happy');
+  gsap.set('#hookReveal', {y: 30});
+
+  /* --- guess --- */
+  $$('[data-play]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.play; if (playing) { stopSong(); b.textContent = '▶'; return }
+    b.innerHTML = '■'; b.classList.add('on');
+    playSong(ROUNDS[i].key, () => { b.textContent = '↻'; b.classList.remove('on') });
+  });
+  function renderGuess(i) {
+    const s = slides.find(x => x.dataset.round == i && x.classList.contains('guess')); if (!s) return;
+    const v = Object.values(S.guess[i]), n = v.length;
+    s.querySelector('.vn').textContent = n;
+    s.querySelectorAll('.vrow').forEach(r => { const c = v.filter(x => x === r.dataset.k).length, p = n ? Math.round(c / n * 100) : 0;
+      r.querySelector('.fill').style.width = p + '%'; r.querySelector('.pct').textContent = p + '%' });
+  }
+  function reveal() {
+    const s = slides[cur]; if (!s.classList.contains('guess')) return; const r = ROUNDS[+s.dataset.round];
+    s.querySelectorAll('.vrow').forEach(x => { x.classList.toggle('win-row', x.dataset.k === r.key); x.classList.toggle('dim', x.dataset.k !== r.key) });
+    gsap.fromTo(s.querySelector('.vrow.win-row'), {scale: 1}, {scale: 1.05, duration: .18, yoyo: true, repeat: 3});
+    gsap.to(s.querySelector('.explain'), {opacity: 1, duration: .5}); gsap.from(s.querySelector('.explain'), {y: 30, rotate: -1.5, duration: .6, ease: 'back.out(2)'});
+    pub({t: 'reveal', sid, round: +s.dataset.round, answer: r.key});
+  }
+
+  /* --- equalizer canvases --- */
+  const data = new Uint8Array(128);
+  (function loop() {
+    const s = slides[cur]; const c = s && s.querySelector('canvas.eq');
+    if (c) { const W = c.clientWidth, H = c.clientHeight; if (c.width !== W) { c.width = W; c.height = H }
+      const g = c.getContext('2d'); g.fillStyle = '#0b0b0b'; g.fillRect(0, 0, W, H);
+      if (analyser && playing) analyser.getByteFrequencyData(data); else data.fill(0);
+      const N = 32, bw = W / N; const cols = ['#DD7DFF', '#E8FF3C', '#FFB443', '#38DBFF'];
+      for (let i = 0; i < N; i++) { const v = playing ? data[i * 2 + 2] / 255 : .04 + .03 * Math.sin(Date.now() / 400 + i);
+        const h = Math.max(4, v * H * .95); g.fillStyle = cols[i % 4]; g.fillRect(i * bw + 3, H - h, bw - 6, h) } }
+    requestAnimationFrame(loop);
+  })();
+
+  /* --- mood bars --- */
+  function renderMood(el, obj) {
+    const v = Object.values(obj), n = v.length, max = Math.max(1, ...[1,2,3,4,5].map(k => v.filter(x => x === k).length));
+    el.querySelectorAll('.c').forEach((c, i) => { const k = v.filter(x => x === i + 1).length; c.querySelector('b').style.height = Math.max(4, k / max * 100) + '%'; c.querySelector('em').textContent = k });
+  }
+  const avg = o => { const v = Object.values(o); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0 };
+  function showResult() {
+    const b = avg(S.before), a = avg(S.after); $('#resultBox').style.visibility = 'visible';
+    $('#colB').style.height = '2%'; $('#colA').style.height = '2%';
+    requestAnimationFrame(() => { $('#colB').style.height = Math.max(8, b / 5 * 100) + '%'; $('#colA').style.height = Math.max(8, a / 5 * 100) + '%' });
+    $('#colB').textContent = b ? b.toFixed(1) : '–'; $('#colA').textContent = a ? a.toFixed(1) : '–';
+    const d = a - b, o = {v: 0};
+    gsap.to(o, {v: d, duration: 1.6, delay: .6, ease: 'power3.out', onUpdate: () => $('#delta').textContent = (o.v >= 0 ? '+' : '−') + Math.abs(o.v).toFixed(1)});
+    $('#delta').style.color = d > 0 ? 'var(--ink)' : 'var(--coral)';
+    $('#deltaTxt').textContent = !b || !a ? 'not enough votes yet' : d > 0.05 ? `the room's mood went UP by ${d.toFixed(1)} points (1–5 scale) — music worked.` : d < -0.05 ? `mood went down ${Math.abs(d).toFixed(1)} — maybe it was the sad round 😅` : 'mood stayed the same — honest data!';
+    gsap.from('#delta', {scale: .4, rotate: -8, duration: .8, delay: .6, ease: 'back.out(3)'});
+  }
+  $('#showResult').onclick = showResult;
+
+  /* --- wall --- */
+  const COLS = ['var(--lime)', 'var(--purple)', 'var(--orange)', 'var(--blue)', 'var(--pink)', 'var(--yellow)', 'var(--green)'];
+  const placed = {};
+  function renderWall(fresh) {
+    const wall = $('#wall'), ids = [...S.shown].filter(id => S.tracks[id]);
+    $('#wallCount').textContent = ids.length; $('#wallEmpty').classList.toggle('hidden', ids.length > 0);
+    const W = wall.clientWidth || 1200, H = wall.clientHeight || 500;
+    ids.forEach((id, i) => {
+      let el = wall.querySelector(`[data-id="${id}"]`);
+      if (!el) {
+        el = document.createElement('div'); el.className = 'sticker'; el.dataset.id = id;
+        el.style.background = COLS[i % COLS.length];
+        el.innerHTML = `<span class="pl">▶</span><span>${esc(S.tracks[id].text)}</span>`;
+        const cols = Math.max(3, Math.floor(W / 300)), row = Math.floor(i / cols), col = i % cols;
+        placed[id] = {x: col / cols * (W - 40) + Math.random() * 40, y: Math.min(H - 70, row * 92 + Math.random() * 26), r: (Math.random() - .5) * 9};
+        el.style.left = placed[id].x + 'px'; el.style.top = placed[id].y + 'px';
+        el.onclick = () => openModal(id, el);
+        wall.appendChild(el);
+        gsap.fromTo(el, {y: -400, rotate: placed[id].r * 6, opacity: 0}, {y: 0, rotate: placed[id].r, opacity: 1, duration: .9, ease: 'bounce.out', delay: fresh ? i * .12 : 0});
+      }
+    });
+  }
+
+  /* --- modal (YouTube best part) --- */
+  let mTimer, mId;
+  const ytId = u => { const m = String(u).match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/); return m && m[1] };
+  const ytT = u => { const m = String(u).match(/[?&]t=(\d+)/); return m ? +m[1] : null };
+  function openModal(id, el) {
+    mId = id; const tr = S.tracks[id]; $('#mTitle').textContent = tr.text.slice(0, 40) + ' — best_part.mp4';
+    const saved = links[tr.text.toLowerCase()] || {}; $('#mLink').value = saved.url || ''; $('#mStart').value = saved.start ?? 45;
+    $('#mSearch').href = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(tr.text);
+    $('#mFrame').innerHTML = 'Paste a YouTube link below → plays from the best part'; $('#mTimer').style.width = '0';
+    $('#modal').classList.remove('hidden'); gsap.from('#modal .win', {scale: .8, rotate: -2, duration: .4, ease: 'back.out(2)'});
+    el.classList.add('played'); if (saved.url) setTimeout(() => $('#mPlay').click(), 300); else $('#mLink').focus();
+  }
+  function closeModal() { $('#modal').classList.add('hidden'); $('#mFrame').innerHTML = ''; gsap.killTweensOf('#mTimer'); clearTimeout(mTimer) }
+  $('#mClose').onclick = closeModal; $('#modal').onclick = e => { if (e.target.id === 'modal') closeModal() };
+  $('#mLink').oninput = () => { const t = ytT($('#mLink').value); if (t != null) $('#mStart').value = t };
+  $('#mPlay').onclick = () => {
+    const v = ytId($('#mLink').value), st = +$('#mStart').value || 0; if (!v) { $('#mFrame').textContent = 'That doesn\'t look like a YouTube link'; return }
+    links[S.tracks[mId].text.toLowerCase()] = {url: $('#mLink').value, start: st}; store.set('mm_links', links);
+    $('#mFrame').innerHTML = `<iframe src="https://www.youtube.com/embed/${v}?start=${st}&end=${st + 20}&autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    gsap.fromTo('#mTimer', {width: '0%'}, {width: '100%', duration: 20, ease: 'none'});
+    clearTimeout(mTimer); mTimer = setTimeout(closeModal, 22000);
+  };
+
+  /* --- incoming messages --- */
+  const loadT = Date.now() / 1000 - 2;
+  function onMsg(m, time) {
+    if ((m.t === 'nav' || m.t === 'modall') && time < loadT) return;
+    if (m.t === 'nav') { if (m.dir === 1) go(cur + 1); else if (m.dir === -1) go(cur - 1); else action(); return }
+    if (m.t === 'modall' && m.sid === sid) { Object.keys(S.tracks).forEach(id => S.shown.add(id)); renderWall(); return }
+    if (m.sid !== sid) return;
+    if (m.cid) S.joined.add(m.cid);
+    if (m.t === 'mood') { S[m.phase === 'after' ? 'after' : 'before'][m.cid] = m.v; renderMood($('#mbBefore'), S.before); renderMood($('#mbAfter'), S.after) }
+    if (m.t === 'guess' && S.guess[m.round]) { S.guess[m.round][m.cid] = m.v; renderGuess(m.round) }
+    if (m.t === 'track' && m.text) { S.tracks[m.id] = {text: String(m.text).slice(0, 60), cid: m.cid}; $('#cTracks').textContent = Object.keys(S.tracks).length;
+      gsap.fromTo('#cTracks', {scale: 1.4}, {scale: 1, duration: .4, ease: 'back.out(3)'}) }
+    if (m.t === 'mod') { if (m.show) S.shown.add(m.id); else S.shown.delete(m.id); if (slides[cur].id === 's-wall') renderWall(); }
+    const j = $('#cJoined'), n = S.joined.size; if (+j.textContent !== n) { j.textContent = n; gsap.fromTo(j, {scale: 1.3}, {scale: 1, duration: .4, ease: 'back.out(3)'}) }
+  }
+  sub(onMsg, ok => { $('#liveDot').classList.toggle('ok', ok); $('#liveTxt').textContent = ok ? 'LIVE · room ' + sid : 'offline — retrying' });
+
+  /* --- demo data for rehearsal (press D) --- */
+  function demo() {
+    const names = ['Lana Del Rey — Summertime Sadness','Weeknd — Blinding Lights','lo-fi beats','Imagine Dragons — Believer','Ludovico Einaudi — Experience','Скриптонит — Привычка','Billie Eilish — ocean eyes','Ninety One — Ice-Ice'];
+    for (let i = 0; i < 14; i++) { const cid = 'demo' + i; S.joined.add(cid); S.before[cid] = 1 + Math.floor(Math.random() * 4); S.after[cid] = Math.min(5, S.before[cid] + Math.round(Math.random() * 1.6));
+      S.guess.forEach((g, r) => g[cid] = Math.random() < .6 ? ROUNDS[r].key : Object.keys(EMO)[Math.floor(Math.random() * 4)]) }
+    names.forEach((t, i) => { S.tracks['d' + i] = {text: t}; S.shown.add('d' + i) });
+    $('#cJoined').textContent = S.joined.size; $('#cTracks').textContent = names.length;
+    renderMood($('#mbBefore'), S.before); renderMood($('#mbAfter'), S.after); S.guess.forEach((_, i) => renderGuess(i)); renderWall(true);
+  }
+
+  slides[0].classList.add('active'); go(0, false); $$('#dots b')[0].classList.add('on');
+  setInterval(broadcastStage, 30000); // keeps late joiners in sync
+}
+
+/* ================= PHONE ================= */
+function initPhone() {
+  let cid = store.get('mm_cid', null); if (!cid) { cid = Math.random().toString(36).slice(2, 10); store.set('mm_cid', cid) }
+  let st = null, lastAt = 0;
+  const mine = store.get('mm_mine', {}); const save = () => store.set('mm_mine', mine);
+  const V = $('#pView');
+  const k = (s) => (st ? st.sid : '') + ':' + s;
+  function render() {
+    if (!st) { V.innerHTML = `<div class="win"><div class="bar"><span class="t">connecting.exe</span></div><div class="body wait"><span class="eqmini"><i></i><i></i><i></i><i></i></span><p class="mono">Waiting for the presenter to start…</p></div></div>`; return }
+    const s = st.stage;
+    if (s === 'before' || s === 'after') {
+      const mk = k('mood_' + s), myTracks = mine[k('tracks')] || [];
+      V.innerHTML = `<div class="win"><div class="bar blue"><span class="t">mood_${s}.exe</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div><div class="body stack">
+        <h2>${s === 'after' ? 'And how do you feel NOW?' : 'How do you feel right now?'}</h2>
+        <div class="moods">${MOODS.map((m, i) => `<button class="btn ${mine[mk] === i + 1 ? 'on' : ''}" data-m="${i + 1}">${m[0]}<small>${m[1]}</small></button>`).join('')}</div>
+        ${mine[mk] ? '<div class="ok">✓ Locked in. You can change it anytime.</div>' : ''}</div></div>
+      ${s === 'before' ? `<div class="win"><div class="bar pink"><span class="t">stress_song.exe</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div><div class="body stack">
+        <h2>What do you listen to when you're stressed?</h2><p class="mono" style="margin:0">Artist — song. It might get played on the big screen 👀</p>
+        <form id="tf" class="stack"><input class="in" id="tin" maxlength="60" placeholder="e.g. The Weeknd — Blinding Lights" autocomplete="off"><button class="btn purple">Send song ▶</button></form>
+        ${myTracks.length ? `<div class="sent">${myTracks.map(t => `<span>✓ ${esc(t)}</span>`).join('')}</div>` : ''}</div></div>` : ''}`;
+      V.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { mine[mk] = +b.dataset.m; save(); pub({t: 'mood', sid: st.sid, cid, phase: s, v: +b.dataset.m}); render(); navigator.vibrate && navigator.vibrate(30) });
+      const f = $('#tf'); if (f) f.onsubmit = e => { e.preventDefault(); const t = $('#tin').value.trim(); if (!t) return;
+        const id = cid + '_' + Date.now().toString(36); pub({t: 'track', sid: st.sid, cid, id, text: t.slice(0, 60)});
+        (mine[k('tracks')] = myTracks).push(t); save(); render(); };
+    } else if (s === 'guess') {
+      const gk = k('guess_' + st.round), picked = mine[gk], ans = mine[k('ans_' + st.round)];
+      V.innerHTML = `<div class="win"><div class="bar orange"><span class="t">round_${st.round + 1}.wav</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div><div class="body stack">
+        <h2>Round ${st.round + 1}: what emotion is this music?</h2>
+        <div class="choices">${Object.keys(EMO).map(e => `<button class="btn ${picked === e ? 'on' : ''}" data-g="${e}" style="background:${EMO[e].color}">${EMO[e].label}${ans ? (ans === e ? ' ✓' : '') : ''}</button>`).join('')}</div>
+        ${ans ? `<div class="ok" style="background:${picked === ans ? 'var(--green)' : 'var(--coral)'}">${picked === ans ? '🎉 Correct!' : 'Not this time — answer: ' + EMO[ans].label}</div>` : picked ? '<div class="ok">✓ Vote sent. Watch the screen!</div>' : ''}</div></div>`;
+      V.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { if (ans) return; mine[gk] = b.dataset.g; save(); pub({t: 'guess', sid: st.sid, cid, round: st.round, v: b.dataset.g}); render(); navigator.vibrate && navigator.vibrate(30) });
+    } else if (s === 'end') {
+      V.innerHTML = `<div class="win"><div class="bar lime"><span class="t">thanks.exe</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div><div class="body stack">
+        <h2>Thanks for playing! 🎧</h2><p>Your challenge: build 3 playlists.</p>
+        <div class="stack"><span class="tag" style="background:var(--blue)">CALM · slow, no lyrics</span><span class="tag" style="background:var(--orange)">CHARGE · fast, 120+ BPM</span><span class="tag" style="background:var(--lime)">FOCUS · instrumental, steady</span></div></div></div>`;
+    } else {
+      V.innerHTML = `<div class="win"><div class="bar"><span class="t">${s === 'wall' ? 'your_playlist.exe' : 'standby.exe'}</span><span class="ctl"><i>–</i><i>□</i><i>×</i></span></div><div class="body wait">
+        <span class="eqmini"><i></i><i></i><i></i><i></i></span><h2 style="margin-top:14px">${s === 'wall' ? 'Your songs are on the big screen 👀' : 'Eyes on the screen 👀'}</h2><p class="mono">Keep this page open — the next question appears here automatically.</p></div></div>`;
+    }
+    if (window.gsap) gsap.from('#pView .win', {y: 30, opacity: 0, duration: .45, stagger: .08, ease: 'back.out(2)', clearProps: 'transform,opacity'});
+  }
+  function onMsg(m, time) {
+    if (m.t === 'stage') { if (m.at < lastAt) return; lastAt = m.at; const ch = !st || st.stage !== m.stage || st.round !== m.round || st.sid !== m.sid; st = m; if (ch) render(); }
+    if (m.t === 'reveal' && st && m.sid === st.sid) { mine[k('ans_' + m.round)] = m.answer; save(); if (st.stage === 'guess' && st.round === m.round) render() }
+  }
+  render();
+  sub(onMsg, ok => { $('#pLiveTxt').textContent = ok ? '● live' : 'reconnecting…' }, '6h');
+}
+
+/* ================= HOST REMOTE ================= */
+function initHost() {
+  let sid = null; const tracks = {}, shown = new Set();
+  const draw = () => {
+    const ids = Object.keys(tracks);
+    $('#hList').innerHTML = ids.length ? ids.reverse().map(id => `<div class="titem ${shown.has(id) ? 'shown' : ''}"><span class="tx">${esc(tracks[id])}</span>
+      <button class="btn ${shown.has(id) ? 'white' : ''}" data-id="${id}">${shown.has(id) ? 'Hide' : 'Show'}</button></div>`).join('') : '<p class="mono">No songs yet.</p>';
+    $$('#hList [data-id]').forEach(b => b.onclick = () => { const id = b.dataset.id, show = !shown.has(id); show ? shown.add(id) : shown.delete(id); pub({t: 'mod', sid, id, show}); draw() });
+  };
+  $('#hPrev').onclick = () => pub({t: 'nav', dir: -1});
+  $('#hNext').onclick = () => pub({t: 'nav', dir: 1});
+  $('#hAction').onclick = () => pub({t: 'nav', dir: 0});
+  $('#hAll').onclick = () => { Object.keys(tracks).forEach(id => shown.add(id)); pub({t: 'modall', sid}); draw() };
+  sub(m => {
+    if (m.t === 'stage') { if (sid !== m.sid) { sid = m.sid; for (const k in tracks) delete tracks[k]; shown.clear() } $('#hStage').textContent = `room ${m.sid} · stage: ${m.stage}${m.stage === 'guess' ? ' ' + (m.round + 1) : ''}` }
+    if (m.sid && m.sid !== sid) return;
+    if (m.t === 'track') tracks[m.id] = m.text;
+    if (m.t === 'mod') m.show ? shown.add(m.id) : shown.delete(m.id);
+    if (m.t === 'modall') Object.keys(tracks).forEach(id => shown.add(id));
+    draw();
+  }, () => {}, '6h');
+}
+}
+</script>
+</body>
+</html>
