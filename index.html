@@ -54,6 +54,7 @@ img{display:block;max-width:100%}
 /* ===== deck ===== */
 #deck{position:fixed;inset:0;display:flex;flex-direction:column}
 .ticker{height:44px;border-bottom:var(--b);background:var(--ink);color:var(--lime);overflow:hidden;display:flex;align-items:center;flex:none}
+.ticker .track span{flex:none}
 .ticker .track{display:flex;gap:40px;white-space:nowrap;font:700 18px/1 var(--mono);animation:tick 28s linear infinite;padding-left:40px}
 @keyframes tick{to{transform:translateX(-50%)}}
 #stage{flex:1;position:relative;overflow:hidden}
@@ -70,7 +71,7 @@ img{display:block;max-width:100%}
 @keyframes pulse{50%{transform:scale(1.35)}}
 
 h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;line-height:1.02;text-wrap:balance}
-.mega{font-size:clamp(48px,8.4vw,150px);letter-spacing:-.01em}
+.mega{font-size:clamp(44px,min(6.6vw,11.5vh),124px);letter-spacing:-.01em}
 .big{font-size:clamp(36px,4.6vw,84px)}
 .mid{font-size:clamp(24px,2.6vw,46px)}
 .lead{font-size:clamp(17px,1.55vw,27px);line-height:1.35;max-width:36ch}
@@ -140,14 +141,14 @@ canvas.eq{width:100%;height:clamp(120px,22vh,240px);border:var(--b);background:v
 
 /* cheat */
 .cheat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(14px,1.8vw,30px);margin-top:clamp(18px,3vh,40px)}
-.cheat .win .photo{height:clamp(90px,16vh,180px);box-shadow:none;border-width:0 0 3px 0}
+.cheat .win .photo{height:clamp(120px,27vh,300px);box-shadow:none;border-width:0 0 3px 0}
 .cheat .win .body{padding:clamp(12px,1.3vw,20px)}
 .cheat h3{font-size:clamp(20px,1.9vw,34px);margin-bottom:8px}
 .cheat p{margin:0 0 8px;font-size:clamp(13px,1.05vw,18px);line-height:1.35}
 
 /* wall */
-#wall{position:relative;height:calc(100% - clamp(80px,11vh,120px));margin-top:12px}
-.sticker{position:absolute;border:var(--b);box-shadow:var(--sh);padding:12px 16px 12px 14px;font:700 clamp(15px,1.4vw,24px)/1.15 var(--ui);max-width:min(26vw,360px);cursor:pointer;display:flex;align-items:center;gap:12px;transition:box-shadow .15s}
+#wall{position:relative;height:calc(100% - clamp(140px,22vh,220px));margin-top:16px;display:flex;flex-wrap:wrap;gap:clamp(16px,2.4vh,30px) clamp(18px,2vw,34px);align-content:center;justify-content:center;padding:10px}
+.sticker{position:relative;border:var(--b);box-shadow:var(--sh);padding:14px 20px 14px 14px;font:700 clamp(17px,1.7vw,30px)/1.15 var(--ui);max-width:min(32vw,460px);cursor:pointer;display:flex;align-items:center;gap:12px;transition:box-shadow .15s}
 .sticker:hover{box-shadow:2px 2px 0 var(--ink)}
 .sticker .pl{flex:none;width:38px;height:38px;border:2.5px solid var(--ink);background:var(--white);display:grid;place-items:center;font-size:16px}
 .sticker.played .pl{background:var(--ink);color:var(--lime)}
@@ -654,7 +655,7 @@ function initDeck() {
       const g = c.getContext('2d'); g.fillStyle = '#0b0b0b'; g.fillRect(0, 0, W, H);
       if (analyser && playing) analyser.getByteFrequencyData(data); else data.fill(0);
       const N = 32, bw = W / N; const cols = ['#DD7DFF', '#E8FF3C', '#FFB443', '#38DBFF'];
-      for (let i = 0; i < N; i++) { const v = playing ? data[i * 2 + 2] / 255 : .04 + .03 * Math.sin(Date.now() / 400 + i);
+      for (let i = 0; i < N; i++) { const v = playing ? data[Math.floor(2 + (i / N) ** 1.7 * 70)] / 255 : .04 + .03 * Math.sin(Date.now() / 400 + i);
         const h = Math.max(4, v * H * .95); g.fillStyle = cols[i % 4]; g.fillRect(i * bw + 3, H - h, bw - 6, h) } }
     requestAnimationFrame(loop);
   })();
@@ -666,7 +667,7 @@ function initDeck() {
   }
   const avg = o => { const v = Object.values(o); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0 };
   function showResult() {
-    const b = avg(S.before), a = avg(S.after); $('#resultBox').style.visibility = 'visible';
+    const b = Math.round(avg(S.before) * 10) / 10, a = Math.round(avg(S.after) * 10) / 10; $('#resultBox').style.visibility = 'visible';
     $('#colB').style.height = '2%'; $('#colA').style.height = '2%';
     requestAnimationFrame(() => { $('#colB').style.height = Math.max(8, b / 5 * 100) + '%'; $('#colA').style.height = Math.max(8, a / 5 * 100) + '%' });
     $('#colB').textContent = b ? b.toFixed(1) : '–'; $('#colA').textContent = a ? a.toFixed(1) : '–';
@@ -691,9 +692,7 @@ function initDeck() {
         el = document.createElement('div'); el.className = 'sticker'; el.dataset.id = id;
         el.style.background = COLS[i % COLS.length];
         el.innerHTML = `<span class="pl">▶</span><span>${esc(S.tracks[id].text)}</span>`;
-        const cols = Math.max(3, Math.floor(W / 300)), row = Math.floor(i / cols), col = i % cols;
-        placed[id] = {x: col / cols * (W - 40) + Math.random() * 40, y: Math.min(H - 70, row * 92 + Math.random() * 26), r: (Math.random() - .5) * 9};
-        el.style.left = placed[id].x + 'px'; el.style.top = placed[id].y + 'px';
+        placed[id] = {r: (Math.random() - .5) * 9};
         el.onclick = () => openModal(id, el);
         wall.appendChild(el);
         gsap.fromTo(el, {y: -400, rotate: placed[id].r * 6, opacity: 0}, {y: 0, rotate: placed[id].r, opacity: 1, duration: .9, ease: 'bounce.out', delay: fresh ? i * .12 : 0});
