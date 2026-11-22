@@ -354,7 +354,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
         </div>
         <div class="row" style="justify-content:space-between;margin-top:10px">
           <h2 class="mid">Thank you! <span class="hl p">Questions?</span></h2>
-          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · music: Carpenter, Pharrell, Survivor, Tiersen, Debussy, Lofi Girl</span>
+          <span class="mono">sources: Salimpoor et al. 2011, Nature Neuroscience · photos: Unsplash · music: Carpenter, Pharrell, Survivor, Tiersen, Debussy, Kupla · 30-sec previews via Apple Music</span>
         </div>
       </div>
     </section>
@@ -373,7 +373,7 @@ input.in:focus{outline:4px solid var(--blue);outline-offset:2px}
   <div class="win" style="width:min(980px,96vw);max-height:92vh">
     <div class="bar lime"><span class="t">music_setup.exe — files stay on THIS laptop only</span><span class="ctl"><i>–</i><i>□</i><button id="setupClose" style="all:unset;cursor:pointer"><i style="width:26px;height:26px;border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink);display:grid;place-items:center;background:var(--orange);font:700 13px/1 var(--mono)">×</i></button></span></div>
     <div class="body stack" style="overflow:auto">
-      <p class="mono" style="margin:0;font-size:13px">Pick an mp3/m4a for each slot (or drag it onto the row). Start = second the clip begins. ▶ test plays it. Missing file → YouTube → generated music.</p>
+      <p class="mono" style="margin:0;font-size:13px">Pick an mp3/m4a for each slot (or drag it onto the row). Start = second the clip begins. ▶ test plays it. Without a file, the official Apple Music 30-sec preview plays. Offline + no file → generated music.</p>
       <div id="setupRows" class="stack" style="gap:10px"></div>
     </div>
   </div>
@@ -534,9 +534,9 @@ const CLIPS = {
   creepy:{id:'mIhCdldRE1U', start:0,  dur:12, title:'John Carpenter — Halloween Theme'},
   happy: {id:'y6Sxv-sUYtM', start:50, dur:12, title:'Pharrell Williams — Happy'},
   energy:{id:'btPJPFnesV4', start:2,  dur:15, title:'Survivor — Eye of the Tiger'},
-  sad:   {id:'znfYwABeSZ0', start:8,  dur:15, title:'Yann Tiersen — Comptine d\'un autre été'},
-  calm:  {id:'WNcsUNKlAKw', start:2,  dur:15, title:'Debussy — Clair de Lune'},
-  focus: {id:'lTRiuFIWV54', start:30, dur:15, title:'Lofi Girl — 1 A.M Study Session'}
+  sad:   {id:'znfYwABeSZ0', start:8,  dur:15, title:'Yann Tiersen — Comptine d\'un autre été (piano: V. Lisitsa)'},
+  calm:  {id:'WNcsUNKlAKw', start:2,  dur:15, title:'Debussy — Clair de Lune (W. Gieseking)'},
+  focus: {id:'lTRiuFIWV54', start:30, dur:15, title:'Kupla — Owls of the Night (Lofi Girl)'}
 };
 let YT_P = null, ytReady = false, ytTm = null, ytFade = null;
 window.onYouTubeIframeAPIReady = () => {
@@ -554,10 +554,18 @@ async function idbAll() { const d = await idb(); return new Promise(r => { const
 async function loadLocal() { try { const all = await idbAll(); for (const k in all) { if (LOCAL[k]) URL.revokeObjectURL(LOCAL[k]); LOCAL[k] = URL.createObjectURL(all[k].blob); LSET[k].file = all[k].name } } catch {} document.dispatchEvent(new Event('localready')) }
 loadLocal();
 let audEl, audGain, audTm, audFade;
+/* Apple Music official 30-second previews (no ads, legal for apps). Used when no local file is set. */
+const APPLE = {creepy:1107715429, happy:863835363, energy:254685026, sad:1440719956, calm:303883400, focus:6787937401};
+const APPLE_CFG = {creepy:{start:0,dur:12}, happy:{start:0,dur:12}, energy:{start:0,dur:15}, sad:{start:0,dur:15}, calm:{start:0,dur:15}, focus:{start:0,dur:15}};
+const PREVIEW = {};
+fetch('https://itunes.apple.com/lookup?id=' + Object.values(APPLE).join(',')).then(r => r.json()).then(j => {
+  for (const k in APPLE) { const t = j.results.find(x => x.trackId === APPLE[k]); if (t && t.previewUrl) { PREVIEW[k] = t.previewUrl; const a = new Audio(); a.preload = 'auto'; a.crossOrigin = 'anonymous'; a.src = t.previewUrl } }
+  document.dispatchEvent(new Event('localready'));
+}).catch(() => {});
 function playLocal(name, onEnd) {
-  audio(); stopSong(); const cfg = LSET[name];
-  if (!audEl) { audEl = new Audio(); audEl.preload = 'auto'; const src = AC.createMediaElementSource(audEl); audGain = AC.createGain(); src.connect(audGain); audGain.connect(master) }
-  audEl.src = LOCAL[name]; audGain.gain.cancelScheduledValues(AC.currentTime); audGain.gain.setValueAtTime(1, AC.currentTime);
+  audio(); stopSong(); const isFile = !!LOCAL[name], cfg = isFile ? LSET[name] : APPLE_CFG[name];
+  if (!audEl) { audEl = new Audio(); audEl.preload = 'auto'; audEl.crossOrigin = 'anonymous'; const src = AC.createMediaElementSource(audEl); audGain = AC.createGain(); src.connect(audGain); audGain.connect(master) }
+  audEl.src = isFile ? LOCAL[name] : PREVIEW[name]; audGain.gain.cancelScheduledValues(AC.currentTime); audGain.gain.setValueAtTime(1, AC.currentTime);
   const go = () => { audEl.currentTime = +cfg.start || 0; audEl.play().catch(() => {}) };
   audEl.readyState >= 1 ? go() : audEl.addEventListener('loadedmetadata', go, {once: true});
   const d = (+cfg.dur || 15) * 1000;
@@ -566,7 +574,7 @@ function playLocal(name, onEnd) {
   playing = {local: true, name};
 }
 function playClip(name, onEnd) {
-  if (LOCAL[name]) return playLocal(name, onEnd);
+  if (LOCAL[name] || PREVIEW[name]) return playLocal(name, onEnd);
   const c = CLIPS[name];
   if (!ytReady || !c) return playSong(name, onEnd);           // offline fallback: generated music
   stopSong();
@@ -576,7 +584,7 @@ function playClip(name, onEnd) {
   ytTm = setTimeout(() => { try { YT_P.pauseVideo() } catch {} playing = null; onEnd && onEnd() }, c.dur * 1000);
   playing = {yt: true, name};
 }
-function cueClip(name) { if (LOCAL[name]) return; const c = CLIPS[name]; if (ytReady && c) try { YT_P.cueVideoById({videoId: c.id, startSeconds: c.start}) } catch {} }
+function cueClip(name) { if (LOCAL[name] || PREVIEW[name]) return; const c = CLIPS[name]; if (ytReady && c) try { YT_P.cueVideoById({videoId: c.id, startSeconds: c.start}) } catch {} }
 function playSong(name, onEnd) {
   audio(); stopSong();
   const bus = AC.createGain(); bus.connect(master); const t = AC.currentTime + .05;
@@ -813,10 +821,10 @@ function initDeck() {
 
   /* --- music setup panel --- */
   const SLOT = {creepy:'Sound A · scary (Halloween)', happy:'Sound B · happy (Happy)', energy:'Round 1 · Energy (Eye of the Tiger)', sad:'Round 2 · Sad (Comptine)', calm:'Round 3 · Calm (Clair de Lune)', focus:'Round 4 · Focus (lofi)'};
-  const countMusic = () => { const n = Object.keys(SLOT).filter(k => LOCAL[k]).length; $('#musicCount').textContent = n + '/6'; $('#setupBtn').style.background = n === 6 ? 'var(--green)' : 'var(--lime)' };
+  const countMusic = () => { const n = Object.keys(SLOT).filter(k => LOCAL[k] || PREVIEW[k]).length; $('#musicCount').textContent = n + '/6'; $('#setupBtn').style.background = n === 6 ? 'var(--green)' : 'var(--lime)' };
   function drawSetup() {
     $('#setupRows').innerHTML = Object.keys(SLOT).map(k => `<div class="row" data-k="${k}" style="border:var(--b);padding:10px;background:${LOCAL[k] ? '#eaffd6' : 'var(--white)'};box-shadow:var(--sh-s)">
-      <b style="flex:1 1 230px">${SLOT[k]}<br><span class="mono" style="font-weight:400;font-size:12px">${LOCAL[k] ? '✓ ' + esc(LSET[k].file || 'file') : 'no file — YouTube fallback'}</span></b>
+      <b style="flex:1 1 230px">${SLOT[k]}<br><span class="mono" style="font-weight:400;font-size:12px">${LOCAL[k] ? '✓ your file: ' + esc(LSET[k].file || 'file') : PREVIEW[k] ? '✓ Apple Music 30-sec preview (add a file to override)' : 'no file — YouTube fallback'}</span></b>
       <label class="btn white" style="min-height:44px;font-size:14px">📁 file<input type="file" accept="audio/*" hidden></label>
       <label class="mono" style="font-size:13px">start <input class="in st" type="number" min="0" value="${LSET[k].start}" style="width:80px;min-height:44px;flex:none"></label>
       <label class="mono" style="font-size:13px">sec <input class="in du" type="number" min="3" max="60" value="${LSET[k].dur}" style="width:70px;min-height:44px;flex:none"></label>
