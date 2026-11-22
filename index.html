@@ -465,7 +465,15 @@ const CHEAT = [
 ];
 
 /* ================= realtime: Firebase Realtime Database (primary) · ntfy.sh (fallback) ================= */
-const FIREBASE = null;   // ← paste the firebaseConfig object here
+const FIREBASE = {         // public web config (safe to expose; access is controlled by database rules)
+  apiKey: "AIzaSyCxV8pYlwBXLfs10A-yAdNaOWNPmz2HSMM",
+  authDomain: "music-mood-e7e6b.firebaseapp.com",
+  databaseURL: "https://music-mood-e7e6b-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "music-mood-e7e6b",
+  storageBucket: "music-mood-e7e6b.firebasestorage.app",
+  messagingSenderId: "1090314365995",
+  appId: "1:1090314365995:web:ccd36f41124d0ea4444e6e"
+};
 let fbDb = null, fbOff = 0;
 function fb() {
   if (!FIREBASE || !window.firebase) return false;
