@@ -83,6 +83,73 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
 .pg{height:100%;display:flex;flex-direction:column;justify-content:center}
 .vcol{display:flex;flex-direction:column;justify-content:center;gap:30px}
 .vcol>*{margin-top:0!important}
+.ph{overflow:hidden;isolation:isolate}
+.ph::before{content:"";position:absolute;inset:0;background:inherit;background-size:cover;background-position:center;z-index:-1}
+.slide.active .ph::before{animation:kb 16s ease-out both}
+@keyframes kb{from{transform:scale(1.12) translate(1.5%,1%)}to{transform:scale(1) translate(0,0)}}
+/* page-turn transition */
+.slide.active{animation:pageIn .95s cubic-bezier(.7,0,.2,1) both}
+.slide.leaving{visibility:visible;opacity:1;z-index:1;animation:pageOut .95s cubic-bezier(.7,0,.2,1) both}
+.slide.active{z-index:2}
+.back .slide.active{animation-name:pageInB}.back .slide.leaving{animation-name:pageOutB}
+@keyframes pageIn{from{clip-path:inset(0 0 0 100%)}to{clip-path:inset(0 0 0 0)}}
+@keyframes pageInB{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes pageOut{to{transform:translateX(-6%) scale(.96);filter:brightness(.55)}}
+@keyframes pageOutB{to{transform:translateX(6%) scale(.96);filter:brightness(.55)}}
+.wipe{position:absolute;top:0;bottom:0;width:6px;background:var(--red);z-index:60;left:100%;opacity:0;pointer-events:none;box-shadow:0 0 30px rgba(196,30,42,.5)}
+.wipe.go{animation:wipe .95s cubic-bezier(.7,0,.2,1) both}.back .wipe.go{animation-name:wipeB}
+@keyframes wipe{from{left:100%;opacity:1}90%{opacity:1}to{left:-60px;opacity:0}}@keyframes wipeB{from{left:-60px;opacity:1}90%{opacity:1}to{left:100%;opacity:0}}
+/* headlines unmask */
+.slide.active h1.r,.slide.active h2.r,.slide.active .statement.r{animation:unmask 1s cubic-bezier(.2,.75,.2,1) both;animation-delay:calc(var(--i,0)*85ms + 380ms)}
+@keyframes unmask{from{clip-path:inset(0 0 100% 0);transform:translateY(40px)}to{clip-path:inset(0 0 -20% 0);transform:none}}
+.slide .r{animation-delay:calc(var(--i,0)*85ms + 420ms)!important}
+.slide.active .mast{animation:fade .6s .3s both}
+.mast::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:1px;background:var(--red);transform-origin:left;transform:scaleX(0)}
+.slide.active .mast::after{animation:drawx 1.2s .45s cubic-bezier(.6,0,.2,1) both}
+@keyframes drawx{from{transform:scaleX(0)}50%{transform:scaleX(1);opacity:1}to{transform:scaleX(1);opacity:0}}
+@keyframes fade{from{opacity:0}}
+/* openers: dark full-bleed photo chapters */
+.opener{background:#11100f;padding:0}
+.opener .ph.bleed{position:absolute;inset:0;filter:grayscale(1) contrast(1.15) brightness(.78)}
+.opener .shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(17,16,15,.94) 0%,rgba(17,16,15,.72) 45%,rgba(17,16,15,.12) 100%),linear-gradient(0deg,rgba(17,16,15,.85),transparent 45%)}
+.opener .op-in{position:absolute;left:88px;right:88px;bottom:118px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:54px;align-items:end}
+.opener .op-num{font:900 290px/.78 var(--serif);color:transparent;-webkit-text-stroke:2px #F5F3F0;letter-spacing:-.04em}
+.opener h1{color:#F5F3F0;font-size:104px}
+.opener .deckline{color:#d8d2c8;max-width:860px}
+.opener .mast{color:#a9a39b;border-color:#F5F3F0}.opener .mast .nm{color:#F5F3F0}
+.opener .folio{border-color:rgba(255,255,255,.15);color:#8d877f}
+.opener .op-cr{position:absolute;right:88px;top:84px;font:italic 400 14px/1.3 var(--text);color:#bdb6ac;text-align:right;max-width:420px}
+.opener.active .op-num{animation:numIn 1.4s .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes numIn{from{opacity:0;transform:translateX(-60px);-webkit-text-stroke-color:var(--red)}}
+/* title collage + ticker */
+.collage{position:relative;height:100%}
+.collage figure{position:absolute;background:#fbfaf7;padding:12px 12px 10px;box-shadow:0 18px 40px rgba(0,0,0,.22)}
+.collage figure .ph{height:100%}
+.collage .c1{left:0;right:0;top:0;height:64%}
+.collage .c2{left:-40px;width:56%;bottom:24px;height:40%;transform:rotate(-3deg)}
+.collage .c3{right:-10px;width:52%;bottom:0;height:42%;transform:rotate(2.5deg)}
+.collage figure span{position:absolute;left:12px;bottom:-22px;font:700 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--gray)}
+.slide.active .collage figure{animation:drop .9s cubic-bezier(.2,.9,.25,1.15) both}
+.slide.active .collage .c1{animation-delay:.45s}.slide.active .collage .c2{animation-delay:.75s}.slide.active .collage .c3{animation-delay:.95s}
+@keyframes drop{from{opacity:0;transform:translateY(-50px) rotate(-8deg) scale(1.08)}}
+.ticker{position:absolute;left:0;right:0;bottom:62px;height:46px;background:var(--ink);color:#F5F3F0;display:flex;align-items:center;overflow:hidden;z-index:5}
+.ticker>b{flex:none;background:var(--red);height:100%;display:flex;align-items:center;padding:0 22px;font:700 14px/1 var(--sans);letter-spacing:.2em;position:relative;z-index:2}
+.ticker .tt{display:flex;white-space:nowrap;animation:tick 38s linear infinite;font:italic 400 20px/1 var(--serif)}
+.ticker .tt{width:max-content;flex:none}.ticker .tt>span{display:inline-block;padding:0 30px;white-space:nowrap}.ticker .tt em{font:700 15px/1 var(--sans);font-style:normal;letter-spacing:.14em;color:#ff8a92;margin-right:12px}.ticker .tt i{color:var(--red);font-style:normal}
+@keyframes tick{to{transform:translateX(-50%)}}
+/* archive contact sheet */
+.sheet{display:grid;grid-template-columns:110px repeat(4,minmax(0,1fr));gap:14px 18px;margin-top:30px}
+.sheet .rowl{font:900 26px/1 var(--serif);writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;border-left:3px solid var(--ink);padding-left:10px;align-self:stretch;display:flex;align-items:center;justify-content:center}
+.sheet .rowl.red{border-color:var(--red)}
+.sheet figure{gap:6px}.sheet .ph{height:208px;flex:none}
+.sheet figcaption{font-size:13.5px;padding-top:6px}
+.slide.active .sheet figure{animation:rise .8s cubic-bezier(.2,.75,.2,1) both;animation-delay:calc(var(--i,0)*90ms + 600ms)}
+.thumbs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px;margin-top:30px}
+.thumbs .ph{height:128px;margin-bottom:12px}
+.front .fph{flex:1;min-height:110px;margin:4px 0 14px}
+.front .hl{font-size:50px!important}
+.pano{height:150px;margin-bottom:34px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
 .tag{display:inline-block;font:700 12px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:#fff;background:var(--red);padding:7px 10px 6px}
 
 /* staggered reveal: every .r inside the active slide rises in */
@@ -225,11 +292,11 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
 <!-- ======================= DECK ======================= -->
 <div id="deck" class="hidden">
 <div class="progress" id="progress"></div>
-<div class="stage" id="stage">
+<div class="stage" id="stage"><div class="wipe" id="wipe"></div>
 
   <!-- 01 TITLE -->
   <section class="slide" data-sec="Арнайы шығарылым" data-min="1">
-    <div class="t-grid" style="grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr)">
+    <div class="t-grid" style="grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);height:calc(100% - 64px)">
       <div class="left">
         <p class="kicker r">Қазақстан тарихы · Арнайы шығарылым</p>
         <h1 class="display r" style="font-size:80px">Әлеуметтік саясат: мемлекет адамға қалай қамқор болады?</h1>
@@ -239,11 +306,13 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
           <span class="byline">Дайындаған: <b data-cfg="authors"></b></span>
         </div>
       </div>
-      <figure class="r" style="padding-top:10px">
-        <div class="ph r" data-img="Tole_Bi_Street_(Almaty,_1998).jpg"></div>
-        <figcaption><b>Алматы, 1998</b>Төле би мен Абылай хан көшелерінің қиылысы. Тәуелсіздіктің алғашқы жылдары. Фото: Brian Harrington Spier, CC BY-SA 2.0</figcaption>
-      </figure>
+      <div class="collage">
+        <figure class="c1"><div class="ph" data-img="Tole_Bi_Street_(Almaty,_1998).jpg"></div><span>Алматы · 1998</span></figure>
+        <figure class="c2"><div class="ph warm" data-img="Market_stand_(Almaty,_1995).jpg"></div><span>Базар · 1995</span></figure>
+        <figure class="c3"><div class="ph" data-img="Elderly Kazakh couple in Astana (20240914-1621432600-RP).jpg"></div><span>Астана · 2024</span></figure>
+      </div>
     </div>
+    <div class="ticker"><b>ЖЕДЕЛ ХАБАР</b><div class="tt" id="ticker"></div></div>
   </section>
 
   <!-- 02 JOIN -->
@@ -285,21 +354,21 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
   <section class="slide" data-sec="I тарау · Анықтама" data-min="3">
 <div class="pg">
     <p class="kicker r">I тарау · Анықтама</p>
-    <h2 class="h2 r" style="max-width:1100px">Әлеуметтік мемлекет деген не?</h2>
-    <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:76px;margin-top:40px">
-      <p class="lead dropcap r">Әлеуметтік саясат — мемлекеттің әр азаматқа лайықты өмір сүруге жағдай жасауға бағытталған шаралары: еңбек пен табыс, білім, денсаулық, баспана және қиын жағдайға тап болғандарды қорғау. Мемлекет нарықтағы теңсіздікті азайтып, ешкімді назардан тыс қалдырмауға тырысады.</p>
+    <h2 class="h2 r" style="max-width:1100px;font-size:60px">Әлеуметтік мемлекет деген не?</h2>
+    <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:76px;margin-top:28px">
+      <p class="lead dropcap r" style="font-size:23px">Әлеуметтік саясат — мемлекеттің әр азаматқа лайықты өмір сүруге жағдай жасауға бағытталған шаралары: еңбек пен табыс, білім, денсаулық, баспана және қиын жағдайға тап болғандарды қорғау. Мемлекет нарықтағы теңсіздікті азайтып, ешкімді назардан тыс қалдырмауға тырысады.</p>
       <blockquote class="pull r">Қазақстан Республикасы өзін демократиялық, зайырлы, құқықтық және әлеуметтік мемлекет ретінде орнықтырады.<cite>Қазақстан Республикасының Конституциясы, 1995 · 1-бап</cite></blockquote>
     </div>
-    <div class="cols r big-cols" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:46px">
-      <div><h3 class="colhead">Кімге?</h3><p class="small">Зейнеткерлер, балалы отбасылар, мүгедектігі бар адамдар, жұмысын жоғалтқандар, табысы аз отбасылар.</p></div>
-      <div><h3 class="colhead">Қалай?</h3><p class="small">Зейнетақы мен жәрдемақы, тегін орта білім мен медициналық көмек, баспана бағдарламалары, атаулы әлеуметтік көмек.</p></div>
-      <div><h3 class="colhead">Не үшін?</h3><p class="small">Кедейлік пен теңсіздікті азайту, адами капиталды дамыту, қоғамдағы тұрақтылық пен сенімді сақтау.</p></div>
+    <div class="cols r big-cols" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:30px">
+      <div><div class="ph" data-img="Elderly Kazakh couple in Astana (20240914-1621432600-RP).jpg" style="height:92px;margin-bottom:12px"></div><h3 class="colhead">Кімге?</h3><p class="small">Зейнеткерлер, балалы отбасылар, мүгедектігі бар адамдар, жұмысын жоғалтқандар, табысы аз отбасылар.</p></div>
+      <div><div class="ph" data-img="Детский сад в Павлодаре.jpg" style="height:92px;margin-bottom:12px"></div><h3 class="colhead">Қалай?</h3><p class="small">Зейнетақы мен жәрдемақы, тегін орта білім мен медициналық көмек, баспана бағдарламалары, атаулы әлеуметтік көмек.</p></div>
+      <div><div class="ph" data-img="Newly-built hospital in Akmola Region, Kazakhstan, June 2025 (1).jpg" style="height:92px;margin-bottom:12px"></div><h3 class="colhead">Не үшін?</h3><p class="small">Кедейлік пен теңсіздікті азайту, адами капиталды дамыту, қоғамдағы тұрақтылық пен сенімді сақтау.</p></div>
     </div>
   </div>
   </section>
 
   <!-- 06 TIMELINE -->
-  <section class="slide" data-sec="Хроника" data-min="3">
+  <section class="slide" data-sec="Хроника" data-min="2">
 <div class="pg">
     <p class="kicker r">Хроника · 1991 — 2024</p>
     <h2 class="h2 r">Отыз бес жылдың басты кезеңдері</h2>
@@ -307,7 +376,21 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
   </div>
   </section>
 
-  <!-- 07 1990s -->
+  <!-- ARCHIVE -->
+  <section class="slide" data-sec="Фотоархив" data-min="1">
+<div class="pg">
+    <p class="kicker r">Фотоархив · бір ел, екі дәуір</p>
+    <h2 class="h2 r">Кеше және бүгін</h2>
+    <div class="sheet r"><div class="rowl">Кеше</div><figure style="--i:0"><div class="ph warm" data-img="Almaty - Chancery Office Building - 1993 - DPLA - 02d686837403607aef69bd9869d01bda.jpg"></div><figcaption><b>1993</b>Алматы. Фото: АҚШ Мемлекеттік департаменті, public domain</figcaption></figure><figure style="--i:1"><div class="ph warm" data-img="Market stand (Almaty, 1995).jpg"></div><figcaption><b>1995</b>Алматы базары. Фото: Carl Malamud, CC0</figcaption></figure><figure style="--i:2"><div class="ph warm" data-img="Hotel Ambassador (Almaty, 1997).jpg"></div><figcaption><b>1997</b>Желтоқсан көшесі. Фото: B. H. Spier, CC BY-SA 2.0</figcaption></figure><figure style="--i:3"><div class="ph warm" data-img="Gogol Street (Almaty, 1999).jpg"></div><figcaption><b>1999</b>Гоголь көшесі. Фото: B. H. Spier, CC BY-SA 2.0</figcaption></figure><div class="rowl red">Бүгін</div><figure style="--i:0"><div class="ph" data-img="Зелёный базар в Алматы (Казахстан).jpg"></div><figcaption><b>2016</b>Алматы, Көк базар. Фото: Spacekid, CC0</figcaption></figure><figure style="--i:1"><div class="ph" data-img="Nazarbayev University 2.jpg"></div><figcaption><b>2010-жж.</b>Назарбаев Университеті. Фото: Dinononozavr1, CC BY-SA 4.0</figcaption></figure><figure style="--i:2"><div class="ph" data-img="Newly-built hospital in Akmola Region, Kazakhstan, June 2025 (1).jpg"></div><figcaption><b>2025</b>Ақмола облысы, жаңа аурухана. Фото: ҚР Премьер-министрі, CC BY 4.0</figcaption></figure><figure style="--i:3"><div class="ph" data-img="Almaty Kök Töbe.jpg"></div><figcaption><b>2026</b>Алматы, Көктөбеден көрініс. Фото: Dauren Nabijan, CC0</figcaption></figure></div>
+  </div>
+  </section>
+
+  <section class="slide opener" data-sec="II тарау · Ашылу" data-min="0.5">
+    <div class="ph bleed" data-img="Market parking lot 01 (Almaty, 1995).jpg"></div><div class="shade"></div>
+    <p class="op-cr">Алматы, базар маңы, 1995.<br>Фото: Carl Malamud, CC0</p>
+    <div class="op-in"><div class="op-num">II</div><div><p class="kicker r">II тарау</p><h1 class="display r">Өтпелі кезең</h1><p class="deckline r">1991–1997: КСРО ыдырады, бағалар өсті, жалақы кешікті. Миллиондаған адам күнкөрістің жаңа жолын іздеді.</p></div></div>
+  </section>
+
   <section class="slide" data-sec="II тарау · 1990-жылдар" data-min="3">
     <div style="display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:64px;height:100%">
       <figure class="r">
@@ -326,6 +409,12 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
     </div>
   </section>
 
+  <section class="slide opener" data-sec="III тарау · Ашылу" data-min="0.5">
+    <div class="ph bleed" data-img="Elderly Kazakh couple in Astana (20240914-1621432600-RP).jpg"></div><div class="shade"></div>
+    <p class="op-cr">Астана, 2024.<br>Фото: Randy Pilan / ICPCNews, CC BY 2.0</p>
+    <div class="op-in"><div class="op-num">III</div><div><p class="kicker r">III тарау</p><h1 class="display r">Зейнетақы реформасы</h1><p class="deckline r">Солидарлы жүйеден жинақтаушы жүйеге: әр адам өз болашағына жауапты болды.</p></div></div>
+  </section>
+
   <!-- 08 PENSION -->
   <section class="slide" data-sec="III тарау · Зейнетақы" data-min="3">
 <div class="pg">
@@ -334,7 +423,7 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
     <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 380px;gap:56px;margin-top:44px">
       <div class="fact r big-cols"><div class="label">Бұрын · солидарлы жүйе</div><h3 class="colhead" style="margin-top:12px">Ұрпақтар келісімі</h3><p class="small">Жұмыс істейтіндер төлеген қаражат бірден бүгінгі зейнеткерлерге кетеді. Зейнеткерлер көбейіп, жұмыскерлер азайғанда жүйе әлсірейді.</p></div>
       <div class="fact r big-cols" style="border-color:var(--red)"><div class="label red">1998 жылдан · жинақтаушы жүйе</div><h3 class="colhead" style="margin-top:12px">Жеке шот</h3><p class="small">Әр жұмыскер табысының 10%-ын өзінің жеке зейнетақы шотына аударады. Ақша инвестицияланып, кейін иесіне төленеді.</p></div>
-      <div class="r" style="text-align:right"><div class="big-num" style="font-size:190px">10%</div><div class="label" style="margin-top:10px">міндетті зейнетақы жарнасы</div></div>
+      <div class="r" style="text-align:right"><div class="big-num" data-count="10%" style="font-size:190px">10%</div><div class="label" style="margin-top:10px">міндетті зейнетақы жарнасы</div></div>
     </div>
     <div class="cols r big-cols" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:56px">
       <div><div class="label red">2013</div><p class="small" style="margin-top:6px">Барлық жеке зейнетақы қорлары бір <b>Бірыңғай жинақтаушы зейнетақы қорына (БЖЗҚ)</b> біріктірілді.</p></div>
@@ -346,6 +435,12 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
   <!-- 09+ GAME 1 (generated) -->
   <div id="slot-g1"></div>
 
+  <section class="slide opener" data-sec="IV тарау · Ашылу" data-min="0.5">
+    <div class="ph bleed" data-img="Nazarbayev University 2.jpg"></div><div class="shade"></div>
+    <p class="op-cr">Астана, Назарбаев Университеті.<br>Фото: Dinononozavr1, CC BY-SA 4.0</p>
+    <div class="op-in"><div class="op-num">IV</div><div><p class="kicker r">IV — VI тараулар</p><h1 class="display r">Білім, денсаулық,<br>отбасы</h1><p class="deckline r">Мемлекет адамға салған инвестиция: «Болашақтан» Ұлттық қордағы балалар шотына дейін.</p></div></div>
+  </section>
+
   <!-- EDUCATION -->
   <section class="slide" data-sec="IV тарау · Білім" data-min="2">
     <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:64px;height:100%">
@@ -354,7 +449,7 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
         <h2 class="h2 r">Адамға салынған инвестиция</h2>
         <p class="lead dropcap r" style="margin-top:26px">Конституция мемлекеттік мектептерде тегін орта білімге кепілдік береді. Ал 1993 жылғы 5 қарашада құрылған «Болашак» халықаралық стипендиясы қазақстандық жастарға әлемнің үздік университеттерінде тегін оқуға жол ашты. Алғашқы 187 стипендиат 1994 жылы оқуға аттанды.</p>
         <div style="display:flex;gap:46px;align-items:end;margin-top:auto" class="r">
-          <div><div class="big-num" style="font-size:118px">12 731</div><div class="label" style="margin-top:10px">«Болашак» түлегі · 30 жылда</div></div>
+          <div><div class="big-num" data-count="12 731" style="font-size:118px">12 731</div><div class="label" style="margin-top:10px">«Болашак» түлегі · 30 жылда</div></div>
         </div>
       </div>
       <figure class="r">
@@ -394,8 +489,8 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
         <h2 class="h2 r">Әр балаға — Ұлттық қордан үлес</h2>
         <p class="lead dropcap r" style="margin-top:26px">Бағдарлама 2024 жылы басталды: «Ұлттық қор — балаларға» бойынша Ұлттық қордың жылдық инвестициялық табысының 50%-ы 18 жасқа дейінгі барлық азамат-балалардың арнайы шотына есептеледі. Кәмелетке толғанда бұл қаражатты тек баспанаға немесе білім алуға жұмсауға болады.</p>
         <div class="cols r" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:auto">
-          <div><div class="big-num" style="font-size:88px">50%</div><div class="label" style="margin-top:8px">Ұлттық қор табысынан</div></div>
-          <div><div class="big-num" style="font-size:88px">$100,52</div><div class="label" style="margin-top:8px">2024 жылы әр балаға</div></div>
+          <div><div class="big-num" data-count="50%" style="font-size:88px">50%</div><div class="label" style="margin-top:8px">Ұлттық қор табысынан</div></div>
+          <div><div class="big-num" data-count="$100,52" style="font-size:88px">$100,52</div><div class="label" style="margin-top:8px">2024 жылы әр балаға</div></div>
         </div>
       </div>
       <figure class="r">
@@ -403,6 +498,12 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
         <figcaption><b>Астана</b>Есіл жағалауындағы тұрғын үйлер. Фото: Ninaras, Wikimedia Commons</figcaption>
       </figure>
     </div>
+  </section>
+
+  <section class="slide opener" data-sec="VII тарау · Ашылу" data-min="0.5">
+    <div class="ph bleed" data-img="Deputies took control of issues of social services in the regions (56588).jpg"></div><div class="shade"></div>
+    <p class="op-cr">Мәжіліс депутаттары өңірлердегі әлеуметтік қызметті тексеруде, 2024.<br>Фото: ҚР Парламенті Мәжілісі, CC BY 4.0</p>
+    <div class="op-in"><div class="op-num">VII</div><div><p class="kicker r">VII тарау</p><h1 class="display r">Жаңа кезең</h1><p class="deckline r">Әлеуметтік кодекс: көмек өтінішті күтпейді, мемлекет өзі келеді.</p></div></div>
   </section>
 
   <!-- SOCIAL CODE -->
@@ -451,16 +552,17 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
   </section>
 
   <!-- CONCLUSIONS -->
-  <section class="slide" data-sec="Қорытынды" data-min="3">
+  <section class="slide" data-sec="Қорытынды" data-min="2">
 <div class="pg">
+    <div class="ph pano r" data-img="New Astana Skyline (9587635437).jpg"></div>
     <p class="kicker r">Қорытынды · Үш басты ой</p>
     <h2 class="h2 r">Біз не түсіндік?</h2>
-    <div class="cols r" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:48px">
+    <div class="cols r" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:34px">
       <div><div class="big-num" style="font-size:96px">I</div><p class="lead" style="margin-top:14px;font-size:26px">Тәуелсіздіктің алғашқы жылдары мемлекет өтпелі кезеңнің ауыр салдарын жеңіп, әлеуметтік қорғаудың жаңа жүйесін құрды.</p></div>
       <div><div class="big-num" style="font-size:96px">II</div><p class="lead" style="margin-top:14px;font-size:26px">Зейнетақы мен медицина реформалары жауапкершілікті мемлекет, жұмыс беруші және азамат арасында бөлді.</p></div>
       <div><div class="big-num" style="font-size:96px">III</div><p class="lead" style="margin-top:14px;font-size:26px">Бүгінгі саясат цифрлық әрі проактивті: Әлеуметтік кодекс пен «Ұлттық қор — балаларға» адамның өзіне бағытталған.</p></div>
     </div>
-    <p class="deckline r" style="margin-top:48px;border-top:1px solid var(--ink);padding-top:22px">Талқылауға: сіздің ойыңызша, әлеуметтік саясаттың қай бағыты әлі де жетілдіруді қажет етеді және неге?</p>
+    <p class="deckline r" style="margin-top:34px;border-top:1px solid var(--ink);padding-top:18px">Талқылауға: сіздің ойыңызша, әлеуметтік саясаттың қай бағыты әлі де жетілдіруді қажет етеді және неге?</p>
   </div>
   </section>
 
@@ -485,7 +587,7 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
     <div style="display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:70px;height:100%">
       <div style="display:flex;flex-direction:column;justify-content:center">
         <p class="kicker r">Соңғы бет</p>
-        <h1 class="display r" style="font-size:74px">Назарларыңызға рахмет!</h1>
+        <h1 class="display r" style="font-size:62px">Назарларыңызға рахмет!</h1>
         <p class="deckline r">Сұрақтарыңыз болса, қоя беріңіз.</p>
       </div>
       <div class="r" style="align-self:center">
@@ -500,7 +602,7 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
           <li>«Вопросы образования» (НИУ ВШЭ), 2014: «Болашак» бағдарламасы туралы.</li>
         </ol>
         <div class="label" style="margin:22px 0 8px">Фотосуреттер</div>
-        <p class="small" style="font-size:14px;color:var(--gray)">Wikimedia Commons: Brian Harrington Spier (CC BY-SA 2.0), Ninaras және басқа авторлар. Әр фотоның авторы суреттің астында көрсетілген.</p>
+        <p class="small" style="font-size:14px;color:var(--gray)">Wikimedia Commons: Brian Harrington Spier (CC BY-SA 2.0), Carl Malamud (CC0), Randy Pilan / ICPCNews (CC BY 2.0), Dinononozavr1 (CC BY-SA 4.0), BibMak (CC BY-SA 4.0), ҚР Парламенті Мәжілісі (CC BY 4.0), ҚР Премьер-министрі (CC BY 4.0), Ken and Nyetta (CC BY 2.0), Spacekid (CC0), Dauren Nabijan (CC0), Ninaras, АҚШ Мемлекеттік департаменті (public domain) және басқалар. Авторлар суреттердің астында көрсетілген.</p>
       </div>
     </div>
   </section>
@@ -559,16 +661,16 @@ const FIREBASE = {                // same project as the music-mood site (public
 const Q = {
   warm: {kind:'poll', prompt:'Әлеуметтік саясат дегенде ойыңызға алдымен не келеді?',
          opts:['Зейнетақы','Білім','Денсаулық','Баспана','Жәрдемақы']},
-  g1_0: {kind:'quiz', game:1, head:'Үздік студенттер мемлекет есебінен шетелдің ең жақсы университеттеріне оқуға аттанады',
+  g1_0: {kind:'quiz', game:1, img:'Renewable Energy Laboratory at Nazarbayev University.JPG', head:'Үздік студенттер мемлекет есебінен шетелдің ең жақсы университеттеріне оқуға аттанады',
          opts:['1993','2001','2010','2017'], ans:0,
          why:'«Болашак» халықаралық стипендиясы 1993 жылғы 5 қарашада құрылды. Алғашқы 187 стипендиат 1994 жылы оқуға кетті, 30 жылда 12 731 адам диплом алды.'},
-  g1_1: {kind:'quiz', game:1, head:'Барлық жеке зейнетақы қорлары бір бірыңғай қорға біріктіріледі',
+  g1_1: {kind:'quiz', game:1, img:'New Astana Skyline (9587635437).jpg', head:'Барлық жеке зейнетақы қорлары бір бірыңғай қорға біріктіріледі',
          opts:['1998','2005','2013','2021'], ans:2,
          why:'2013 жылы зейнетақы жинақтары Бірыңғай жинақтаушы зейнетақы қорына (БЖЗҚ) біріктірілді. Жинақтаушы жүйенің өзі 1998 жылдан бері жұмыс істейді.'},
-  g1_2: {kind:'quiz', game:1, head:'Міндетті медициналық сақтандыру іске қосылды: енді жарнаны мемлекет, жұмыс беруші және азамат бірге төлейді',
+  g1_2: {kind:'quiz', game:1, img:'Newly-built hospital in Akmola Region, Kazakhstan, June 2025 (1).jpg', head:'Міндетті медициналық сақтандыру іске қосылды: енді жарнаны мемлекет, жұмыс беруші және азамат бірге төлейді',
          opts:['2008','2015','2020','2024'], ans:2,
          why:'МӘМС 2020 жылғы 1 қаңтарда іске қосылды. Басында оны 2018 жылы бастау жоспарланған, бірақ сынға байланысты мерзімі ауыстырылды.'},
-  g1_3: {kind:'quiz', game:1, head:'Он заң бір құжатқа біріктірілді: жаңа Әлеуметтік кодекс күшіне енді',
+  g1_3: {kind:'quiz', game:1, img:'Deputies took control of issues of social services in the regions (56587).jpg', head:'Он заң бір құжатқа біріктірілді: жаңа Әлеуметтік кодекс күшіне енді',
          opts:['2019','2021','2023','2025'], ans:2,
          why:'Әлеуметтік кодекске 2023 жылғы 20 сәуірде қол қойылды, ол 1 шілдеде күшіне енді. Он заңның нормалары бір құжатқа жиналды.'},
   g2_0: {kind:'tf', game:2, head:'Конституция бойынша Қазақстан — әлеуметтік мемлекет.', opts:['Ақиқат','Жалған'], ans:0,
@@ -675,7 +777,7 @@ function initDeck() {
         <div class="yr" data-yr>____ жыл</div>
         <div class="hl">${esc(Q[q].head)}</div>
         <div class="why"><div class="label red">Түсініктеме</div><p>${esc(Q[q].why)}</p></div>
-        <div class="sub"><span></span><span></span><span></span></div>
+        <div class="ph fph" data-img="${Q[q].img}"></div>
         <div class="stamp">${esc(Q[q].opts[Q[q].ans])}</div>
       </div>
       <div style="display:flex;flex-direction:column">
@@ -713,6 +815,7 @@ function initDeck() {
 
   /* ---- static fills ---- */
   $$('[data-cfg]').forEach(e => e.textContent = CFG[e.dataset.cfg] || '');
+  { const t = CHRON.map(([y, x]) => `<span><em>${y}</em>${x}</span><i>✦</i>`).join(''); $('#ticker').innerHTML = t + t }
   $('#toc').innerHTML = TOC.map((t, i) => `<li class="r" style="display:grid;grid-template-columns:70px minmax(0,1fr);align-items:baseline;border-bottom:1px solid var(--rule);padding:11px 0">
     <span style="font:900 30px/1 var(--serif);color:${i === 3 || i === 7 ? 'var(--red)' : 'var(--silver)'}">${String(i + 1).padStart(2, '0')}</span><span style="font:700 27px/1.2 var(--serif)">${t}</span></li>`).join('');
   const per = Math.ceil(CHRON.length / 3);
@@ -834,8 +937,14 @@ function initDeck() {
   /* ---- navigation ---- */
   function go(n) {
     n = Math.max(0, Math.min(slides.length - 1, n));
-    slides[cur].classList.remove('active'); cur = n; store.set('sp_cur', cur);
+    const prev = slides[cur], back = n < cur, moving = n !== cur;
+    $$('.slide.leaving').forEach(x => x.classList.remove('leaving'));
+    prev.classList.remove('active'); cur = n; store.set('sp_cur', cur);
+    const st = $('#stage'); st.classList.toggle('back', back);
+    if (moving) { prev.classList.add('leaving'); clearTimeout(prev._lt); prev._lt = setTimeout(() => prev.classList.remove('leaving'), 1000);
+      const w = $('#wipe'); w.classList.remove('go'); void w.offsetWidth; w.classList.add('go') }
     const s = slides[cur]; void s.offsetWidth; s.classList.add('active');
+    countUp(s);
     $('#progress').style.width = ((cur + 1) / slides.length * 100) + '%';
     const left = slides.slice(cur).reduce((a, x) => a + (+x.dataset.min || 0), 0);
     $('#cInfo').textContent = `${cur + 1} / ${slides.length} · қалды ≈ ${Math.round(left)} мин`;
@@ -846,6 +955,15 @@ function initDeck() {
     if (s.dataset.q) { renderQ(s.dataset.q); if (Q[s.dataset.q].ans != null && !S.revealed.has(s.dataset.q)) startTimer() }
     if (s.id !== 's-video') $$('video', $('#vidBox')).forEach(v => v.pause());
     broadcast();
+  }
+  function countUp(s) {
+    $$('[data-count]', s).forEach(el => {
+      const raw = el.dataset.count, m = raw.match(/^(\D*)([\d\s]+(?:,\d+)?)(.*)$/); if (!m) return;
+      const target = parseFloat(m[2].replace(/\s/g, '').replace(',', '.')), dec = (m[2].split(',')[1] || '').length, t0 = performance.now(), D = 1400;
+      const fmt = v => m[1] + (dec ? v.toFixed(dec).replace('.', ',') : Math.round(v).toLocaleString('ru-RU').replace(/\u00a0/g, ' ')) + m[3];
+      const step = now => { const k = Math.min(1, (now - t0 - 450) / D); const e = k < 0 ? 0 : 1 - Math.pow(1 - k, 3); el.textContent = fmt(target * e); if (k < 1) requestAnimationFrame(step) };
+      requestAnimationFrame(step);
+    });
   }
   function reveal() {
     const q = slides[cur].dataset.q; if (!q || Q[q].ans == null) return;
