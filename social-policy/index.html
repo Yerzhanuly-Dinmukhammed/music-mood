@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ел жаршысы · Қазақстан Республикасындағы әлеуметтік саясат</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Source+Sans+3:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/*
+AESTHETIC: Editorial / Magazine Layout (chrislemke/website_designs).
+The lesson is one special issue of a newspaper, "Ел жаршысы". Every slide is a printed page:
+masthead, kicker, huge serif headline, italic deck, drop cap, hairline rules, archive photo with caption.
+Games are "front pages" from the past. The audience's phones are the readers' ballots.
+*/
+:root{
+  --paper:#F5F3F0;--stone:#E8E4DF;--ink:#1A1A1A;--char:#2C2C2C;--body:#3D3D3D;--gray:#6B6B6B;--silver:#9A9A9A;--rule:#D4D4D4;
+  --red:#C41E2A;--navy:#1B2A4A;--gold:#B8860B;--burg:#6B1D2A;
+  --serif:'Playfair Display','PT Serif',Georgia,serif;
+  --text:'PT Serif',Georgia,serif;
+  --sans:'Source Sans 3','PT Sans','Helvetica Neue',sans-serif;
+}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%}
+body{background:#141312;color:var(--ink);font:400 18px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+.hidden{display:none!important}
+
+/* ============ DECK: fixed 1600×900 page scaled to the screen ============ */
+#deck{position:fixed;inset:0;overflow:hidden}
+.stage{font-variant-numeric:lining-nums;position:absolute;left:50%;top:50%;width:1600px;height:900px;transform:translate(-50%,-50%) scale(var(--s,1));transform-origin:center;
+  background:var(--paper);box-shadow:0 30px 80px rgba(0,0,0,.45);overflow:hidden}
+.stage::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:50;opacity:.5;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35  0 0 0 0 .3  0 0 0 0 .25  0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.slide{position:absolute;inset:0;padding:96px 88px 74px;opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s linear .45s}
+.slide.active{opacity:1;visibility:visible;transition:opacity .45s ease}
+.mast{position:absolute;top:30px;left:88px;right:88px;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;
+  border-bottom:3px double var(--ink);padding-bottom:9px;font:700 12.5px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--gray)}
+.mast .nm{font:900 25px/1 var(--serif);letter-spacing:.06em;color:var(--ink);text-transform:none}
+.mast .rt{text-align:right}
+.folio{position:absolute;left:88px;right:88px;bottom:26px;display:flex;justify-content:space-between;border-top:1px solid var(--rule);padding-top:10px;
+  font:600 12px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--silver)}
+.kicker{font:700 15px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--red);margin:0 0 18px;display:flex;align-items:center;gap:14px}
+.kicker::after{content:"";height:1px;width:70px;background:var(--red)}
+.kicker.plain::after{display:none}
+h1,h2,h3{margin:0;font-family:var(--serif);color:var(--ink);font-weight:900;letter-spacing:-.015em}
+.display{font-size:96px;line-height:1;text-wrap:balance}
+.h2,.h3,.hl{text-wrap:balance}
+.h2{font-size:68px;line-height:1.02}
+.h3{font-size:40px;line-height:1.08;font-weight:700}
+.deckline{font:italic 400 29px/1.38 var(--serif);color:var(--body);margin:22px 0 0}
+.lead{font:400 24.5px/1.55 var(--text);color:var(--body);margin:0}
+.small{font:400 20.5px/1.5 var(--text);color:var(--body);margin:0}
+.dropcap::first-letter{float:left;font:900 118px/.82 var(--serif);color:var(--red);padding:9px 14px 0 0}
+.label{font:700 13px/1.2 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--gray)}
+.rule{height:1px;background:var(--ink);border:0;margin:0}
+.red{color:var(--red)}.gold{color:var(--gold)}
+.byline{font:600 15px/1.4 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--gray)}
+.byline b{color:var(--ink)}
+figure{margin:0;display:flex;flex-direction:column;gap:9px}
+.ph{flex:1;min-height:0;background:var(--stone) center/cover no-repeat;filter:grayscale(1) contrast(1.06) brightness(.98);position:relative}
+.ph.warm{filter:grayscale(.85) sepia(.18) contrast(1.05)}
+.ph.broken{filter:none;background:repeating-linear-gradient(45deg,var(--stone) 0 12px,#e1dcd5 12px 24px)}
+figcaption{font:italic 400 15px/1.35 var(--text);color:var(--gray);border-top:1px solid var(--rule);padding-top:8px}
+figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px;color:var(--ink);margin-right:8px}
+.pull{font:italic 700 36px/1.24 var(--serif);color:var(--ink);border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);padding:22px 0 20px 66px;margin:0;position:relative}
+.pull::before{content:"«";position:absolute;left:0;top:8px;font:900 110px/1 var(--serif);color:var(--red)}
+.pull cite{display:block;margin-top:14px;font:700 13px/1.3 var(--sans);font-style:normal;letter-spacing:.18em;text-transform:uppercase;color:var(--gray)}
+.big-num{font:900 150px/1 var(--serif);color:var(--red);letter-spacing:-.04em}
+.cols{display:grid;gap:0}
+.cols>*{padding:0 30px;border-left:1px solid var(--rule)}
+.cols>*:first-child{padding-left:0;border-left:0}
+.cols>*:last-child{padding-right:0}
+.colhead{font:700 26px/1.15 var(--serif);margin:0 0 10px}
+.fact{border-top:3px solid var(--ink);padding-top:14px}
+.fact .yr{font:900 46px/1 var(--serif);color:var(--ink)}
+.fact .yr.red{color:var(--red)}
+.box{background:var(--stone);padding:24px 28px}
+.big-cols .small{font-size:23px;line-height:1.45}.big-cols .colhead{font-size:30px}.big-cols .label{font-size:15px}
+.stage *,#phone *{font-variant-numeric:lining-nums!important}
+.pg{height:100%;display:flex;flex-direction:column;justify-content:center}
+.vcol{display:flex;flex-direction:column;justify-content:center;gap:30px}
+.vcol>*{margin-top:0!important}
+.tag{display:inline-block;font:700 12px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:#fff;background:var(--red);padding:7px 10px 6px}
+
+/* staggered reveal: every .r inside the active slide rises in */
+.slide.active .r{animation:rise .8s cubic-bezier(.2,.75,.2,1) both;animation-delay:calc(var(--i,0)*85ms + 120ms)}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}}
+.slide.active .ph.r{animation-name:develop}
+@keyframes develop{from{opacity:0;transform:scale(1.04);filter:grayscale(1) contrast(1.4) brightness(1.6)}}
+
+/* title page */
+.t-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:56px;height:100%}
+.t-grid .left{display:flex;flex-direction:column;justify-content:center}
+.issue{display:flex;gap:26px;margin-top:34px;align-items:center}
+
+/* join / QR */
+.qr{background:#fff;padding:18px;border:1px solid var(--ink);box-shadow:10px 10px 0 var(--stone)}
+.qr svg{display:block;width:100%;height:auto}
+.url{font:700 18px/1.3 var(--sans);letter-spacing:.04em;color:var(--ink);word-break:break-all}
+.counter{font:900 120px/.9 var(--serif);color:var(--red)}
+.live{display:inline-flex;align-items:center;gap:8px;font:700 12px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--gray)}
+.live i{width:9px;height:9px;border-radius:50%;background:var(--silver)}
+.live.ok i{background:var(--red);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.names{display:flex;flex-wrap:wrap;gap:8px 18px;font:italic 400 22px/1.3 var(--serif);color:var(--body);max-height:200px;overflow:hidden}
+.names span{animation:rise .5s both}
+
+/* bars */
+.opt{display:grid;grid-template-columns:52px minmax(0,1fr) 90px;align-items:center;gap:0 18px;padding:16px 0;border-bottom:1px solid var(--rule)}
+.opt .k{font:900 34px/1 var(--serif);color:var(--silver)}
+.opt .tx{font:700 30px/1.15 var(--serif);color:var(--ink)}
+.qslide .opt{padding:22px 0}.qslide .opt .tx{font-size:44px}.qslide .opt .k{font-size:40px}
+.opt .bar{grid-column:2/3;height:10px;background:var(--stone);margin-top:10px;position:relative;overflow:hidden}
+.opt .bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ink);transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.opt .pc{font:700 26px/1 var(--sans);text-align:right;color:var(--gray);grid-row:1/3;grid-column:3}
+.opt.win .k,.opt.win .tx,.opt.win .pc{color:var(--red)}
+.opt.win .bar i{background:var(--red)}
+.opt.dim{opacity:.38}
+.hide-dist .opt .bar i{width:0!important}.hide-dist .opt .pc{visibility:hidden}
+
+/* games */
+.front{background:#fbfaf7;border:1px solid var(--ink);box-shadow:14px 14px 0 var(--stone);padding:30px 36px;height:100%;display:flex;flex-direction:column;position:relative}
+.front .fm{display:flex;justify-content:space-between;align-items:end;border-bottom:3px double var(--ink);padding-bottom:10px;margin-bottom:22px}
+.front .fm .nm{font:900 40px/1 var(--serif)}
+.front .fm .dt{font:700 14px/1.2 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--gray);text-align:right}
+.front .yr{font:900 54px/1 var(--serif);color:var(--silver);letter-spacing:.04em}
+.front .hl{font:900 60px/1.04 var(--serif);letter-spacing:-.015em;margin:8px 0 18px}
+.front .sub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:auto}
+.front .sub span{height:9px;background:var(--rule)}
+.front .sub span:nth-child(2){background:var(--stone)}
+.stamp{position:absolute;right:34px;top:96px;border:6px double var(--red);color:var(--red);font:800 52px/1 var(--sans);letter-spacing:.1em;padding:12px 24px 8px;transform:rotate(-9deg);
+  background:rgba(251,250,247,.86);opacity:0;pointer-events:none}
+.revealed .stamp{animation:stampin .5s cubic-bezier(.3,1.6,.5,1) forwards}
+@keyframes stampin{from{opacity:0;transform:rotate(-9deg) scale(2.2)}to{opacity:1;transform:rotate(-9deg) scale(1)}}
+.why{opacity:0;transform:translateY(14px);transition:all .6s .25s}
+.revealed .why{opacity:1;transform:none}
+.why p{font:400 19px/1.5 var(--text);color:var(--body);margin:8px 0 0}
+.timer{display:flex;align-items:center;gap:14px}
+.timer .tb{flex:1;height:4px;background:var(--stone);position:relative;overflow:hidden}
+.timer .tb i{position:absolute;inset:0;background:var(--ink);transform-origin:left;transform:scaleX(0)}
+.timer .tn{font:700 22px/1 var(--sans);width:48px;text-align:right}
+.mini-qr{width:118px;background:#fff;padding:8px;border:1px solid var(--ink)}
+.mini-qr svg{display:block;width:100%;height:auto}
+.statement{font:italic 700 62px/1.16 var(--serif);color:var(--ink);margin:0;position:relative;border-left:8px solid var(--red);padding:4px 0 6px 40px;text-wrap:balance}
+.tf{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.tf .side{border-top:3px solid var(--ink);padding-top:16px}
+.tf .side .nm{font:900 46px/1 var(--serif)}
+.tf .side .pc{font:700 30px/1 var(--sans);color:var(--gray);margin-top:10px}
+.tf .side .bar{height:12px;background:var(--stone);margin-top:14px;position:relative;overflow:hidden}
+.tf .side .bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--ink);transition:width .9s}
+.tf .side.win{border-color:var(--red)}.tf .side.win .nm,.tf .side.win .pc{color:var(--red)}.tf .side.win .bar i{background:var(--red)}
+.tf .side.dim{opacity:.38}
+.hide-dist .tf .side .bar i{width:0!important}.hide-dist .tf .side .pc{visibility:hidden}
+
+/* leaderboard */
+.lb{counter-reset:n}
+.lb li{list-style:none;display:grid;grid-template-columns:70px minmax(0,1fr) 120px;align-items:baseline;border-bottom:1px solid var(--rule);padding:12px 0}
+.lb li::before{counter-increment:n;content:counter(n);font:900 40px/1 var(--serif);color:var(--silver)}
+.lb li:first-child::before{color:var(--red)}
+.lb li b{font:700 32px/1.1 var(--serif)}
+.lb li span{font:700 26px/1 var(--sans);text-align:right}
+.lb li:first-child b,.lb li:first-child span{color:var(--red)}
+
+/* word wall */
+.words{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 26px;align-content:flex-start;height:100%;overflow:hidden}
+.words span{font-family:var(--serif);font-weight:700;color:var(--ink);line-height:1.05;animation:rise .6s both}
+.words span:nth-child(3n){font-style:italic;color:var(--red)}
+.words span:nth-child(4n){color:var(--navy)}
+
+/* video */
+.vid{position:relative;background:#111;height:100%;display:grid;place-items:center;overflow:hidden}
+.vid video,.vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#111}
+.vid .ph-msg{color:#e8e4df;text-align:center;max-width:620px;font:italic 400 24px/1.45 var(--serif)}
+.vid .ph-msg b{display:block;font:700 13px/1 var(--sans);font-style:normal;letter-spacing:.2em;color:var(--red);margin-bottom:16px}
+
+/* controls */
+.ctrl{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:2px;align-items:center;background:rgba(26,26,26,.92);color:#f5f3f0;padding:6px;
+  font:600 13px/1 var(--sans);letter-spacing:.06em;z-index:100;transition:opacity .4s;opacity:0}
+.ctrl.show,.ctrl:hover{opacity:1}
+.ctrl button{padding:9px 13px;color:#f5f3f0}
+.ctrl button:hover{background:#3a3a3a}
+.ctrl .sep{width:1px;height:20px;background:#555;margin:0 4px}
+.ctrl .info{padding:0 10px;color:#bbb;white-space:nowrap}
+.ctrl button.arm{background:var(--red)}
+.progress{position:fixed;left:0;top:0;height:3px;background:var(--red);z-index:101;transition:width .4s}
+
+/* ============ PHONE ============ */
+#phone{font-variant-numeric:lining-nums;min-height:100%;background:var(--paper);color:var(--ink)}
+.p-wrap{max-width:520px;margin:0 auto;padding:18px 20px 40px;min-height:100vh;display:flex;flex-direction:column}
+.p-mast{border-bottom:3px double var(--ink);padding-bottom:8px;display:flex;justify-content:space-between;align-items:end}
+.p-mast .nm{font:900 26px/1 var(--serif)}
+.p-mast .me{font:700 11px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--gray);text-align:right}
+.p-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:22px 0}
+.p-kick{font:700 12px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--red);margin-bottom:12px}
+.p-q{font:900 30px/1.12 var(--serif);margin:0 0 20px}
+.p-q.it{font-style:italic;font-weight:700}
+.p-opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:1.5px solid var(--ink);background:#fbfaf7;padding:16px 16px;margin:0 0 10px;
+  font:700 20px/1.2 var(--serif);transition:background .15s,color .15s;-webkit-tap-highlight-color:transparent}
+.p-opt i{font:900 22px/1 var(--serif);color:var(--silver);font-style:normal;width:26px}
+.p-opt.sel{background:var(--ink);color:var(--paper)}.p-opt.sel i{color:var(--paper)}
+.p-opt.ok{border-color:var(--red);box-shadow:inset 0 0 0 2px var(--red)}
+.p-opt.ok::after{content:"дұрыс";margin-left:auto;font:700 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--red)}
+.p-opt.sel.ok::after{color:#ff9ea6}
+.p-opt:disabled{cursor:default}
+.p-note{font:italic 400 17px/1.45 var(--text);color:var(--gray);margin:10px 0 0}
+.p-res{font:900 26px/1.2 var(--serif);margin:16px 0 0}
+.p-res.good{color:var(--red)}
+.p-in{width:100%;font:700 22px/1.2 var(--serif);padding:14px 14px;border:1.5px solid var(--ink);background:#fff;color:var(--ink);border-radius:0;outline:none}
+.p-in:focus{box-shadow:0 0 0 3px var(--stone)}
+.p-btn{width:100%;margin-top:12px;background:var(--red);color:#fff;font:700 16px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;padding:18px}
+.p-btn:disabled{opacity:.5}
+.p-err{font:600 14px/1.3 var(--sans);color:var(--red);margin-top:8px;min-height:18px}
+.p-wait{text-align:center}
+.p-wait .orn{font:900 64px/1 var(--serif);color:var(--red)}
+.p-foot{font:600 11px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--silver);border-top:1px solid var(--rule);padding-top:10px;display:flex;justify-content:space-between}
+.p-rate{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
+.p-rate .p-opt{justify-content:center;font-size:26px;padding:16px 0}
+</style>
+</head>
+<body>
+
+<!-- ======================= DECK ======================= -->
+<div id="deck" class="hidden">
+<div class="progress" id="progress"></div>
+<div class="stage" id="stage">
+
+  <!-- 01 TITLE -->
+  <section class="slide" data-sec="Арнайы шығарылым" data-min="1">
+    <div class="t-grid" style="grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr)">
+      <div class="left">
+        <p class="kicker r">Қазақстан тарихы · Арнайы шығарылым</p>
+        <h1 class="display r" style="font-size:80px">Әлеуметтік саясат: мемлекет адамға қалай қамқор болады?</h1>
+        <p class="deckline r">Зейнетақы, білім, денсаулық, баспана: тәуелсіздіктің отыз бес жылында не өзгерді?</p>
+        <div class="issue r">
+          <span class="tag">1991 — 2026</span>
+          <span class="byline">Дайындаған: <b data-cfg="authors"></b></span>
+        </div>
+      </div>
+      <figure class="r" style="padding-top:10px">
+        <div class="ph r" data-img="Tole_Bi_Street_(Almaty,_1998).jpg"></div>
+        <figcaption><b>Алматы, 1998</b>Төле би мен Абылай хан көшелерінің қиылысы. Тәуелсіздіктің алғашқы жылдары. Фото: Brian Harrington Spier, CC BY-SA 2.0</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 02 JOIN -->
+  <section class="slide" id="s-join" data-sec="Оқырмандар клубы" data-min="2" data-stage="lobby">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:80px;height:100%;align-items:center">
+      <div>
+        <p class="kicker r">Залмен байланыс</p>
+        <h1 class="display r" style="font-size:88px">Телефоныңызды алыңыз</h1>
+        <p class="deckline r">QR-кодты сканерлеп, атыңызды жазыңыз. Сабақ бойы ойындарда дауыс бересіз: ең көп ұпай жинаған оқырман соңында жеңімпаз атанады.</p>
+        <div class="r" style="display:flex;gap:60px;align-items:end;margin-top:40px">
+          <div><div class="counter" id="cJoined">0</div><div class="label">оқырман қосылды</div></div>
+          <div class="names" id="joinNames" style="flex:1"></div>
+        </div>
+      </div>
+      <div class="r">
+        <div class="qr" id="qrBig"></div>
+        <p class="url" id="joinUrl" style="margin:18px 0 8px"></p>
+        <span class="live" id="liveTag"><i></i><span>қосылуда…</span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 WARM-UP POLL (generated) -->
+  <div id="slot-warm"></div>
+
+  <!-- 04 CONTENTS -->
+  <section class="slide" data-sec="Мазмұны" data-min="1">
+    <div style="display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:80px;height:100%">
+      <div style="display:flex;flex-direction:column;justify-content:center">
+        <p class="kicker r">Сабақтың мақсаты</p>
+        <h2 class="h2 r">Бүгінгі нөмірде</h2>
+        <p class="lead dropcap r" style="margin-top:30px">Тәуелсіз Қазақстанның әлеуметтік саясаты қалай қалыптасқанын, оның негізгі бағыттарын және бүгінгі нәтижелерін түсіну. Өтпелі кезеңнің қиындығынан бастап цифрлық, «өтінішсіз» көмекке дейінгі жолды бірге шолып шығамыз.</p>
+      </div>
+      <ol id="toc" style="margin:0;padding:0;list-style:none;align-self:center"></ol>
+    </div>
+  </section>
+
+  <!-- 05 DEFINITION -->
+  <section class="slide" data-sec="I тарау · Анықтама" data-min="3">
+<div class="pg">
+    <p class="kicker r">I тарау · Анықтама</p>
+    <h2 class="h2 r" style="max-width:1100px">Әлеуметтік мемлекет деген не?</h2>
+    <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:76px;margin-top:40px">
+      <p class="lead dropcap r">Әлеуметтік саясат — мемлекеттің әр азаматқа лайықты өмір сүруге жағдай жасауға бағытталған шаралары: еңбек пен табыс, білім, денсаулық, баспана және қиын жағдайға тап болғандарды қорғау. Мемлекет нарықтағы теңсіздікті азайтып, ешкімді назардан тыс қалдырмауға тырысады.</p>
+      <blockquote class="pull r">Қазақстан Республикасы өзін демократиялық, зайырлы, құқықтық және әлеуметтік мемлекет ретінде орнықтырады.<cite>Қазақстан Республикасының Конституциясы, 1995 · 1-бап</cite></blockquote>
+    </div>
+    <div class="cols r big-cols" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:46px">
+      <div><h3 class="colhead">Кімге?</h3><p class="small">Зейнеткерлер, балалы отбасылар, мүгедектігі бар адамдар, жұмысын жоғалтқандар, табысы аз отбасылар.</p></div>
+      <div><h3 class="colhead">Қалай?</h3><p class="small">Зейнетақы мен жәрдемақы, тегін орта білім мен медициналық көмек, баспана бағдарламалары, атаулы әлеуметтік көмек.</p></div>
+      <div><h3 class="colhead">Не үшін?</h3><p class="small">Кедейлік пен теңсіздікті азайту, адами капиталды дамыту, қоғамдағы тұрақтылық пен сенімді сақтау.</p></div>
+    </div>
+  </div>
+  </section>
+
+  <!-- 06 TIMELINE -->
+  <section class="slide" data-sec="Хроника" data-min="3">
+<div class="pg">
+    <p class="kicker r">Хроника · 1991 — 2024</p>
+    <h2 class="h2 r">Отыз бес жылдың басты кезеңдері</h2>
+    <div class="cols r big-cols" id="chron" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:40px"></div>
+  </div>
+  </section>
+
+  <!-- 07 1990s -->
+  <section class="slide" data-sec="II тарау · 1990-жылдар" data-min="3">
+    <div style="display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:64px;height:100%">
+      <figure class="r">
+        <div class="ph warm r" data-img="Market_stand_(Almaty,_1995).jpg"></div>
+        <figcaption><b>Алматы, 1995</b>Базардағы сауда орны. Жұмыссыз қалған мыңдаған адам күнкөрісті базардан тапты. Фото: Wikimedia Commons</figcaption>
+      </figure>
+      <div class="vcol">
+        <p class="kicker r">II тарау · Өтпелі кезең</p>
+        <h2 class="h2 r">1990-жылдар: ең ауыр сынақ</h2>
+        <p class="lead dropcap r" style="margin-top:26px">КСРО ыдырағаннан кейін бұрынғы шаруашылық байланыстар үзілді: бағалар жылдам өсті, кәсіпорындар тоқтады, жалақы мен зейнетақы айлап кешікті. Мемлекет алдында екі міндет тұрды: экономиканы құлдыраудан шығару және ең әлсіз топтарды қорғау.</p>
+        <div class="box r" style="margin-top:auto">
+          <div class="label" style="color:var(--red)">1991 — 1995</div>
+          <p class="small" style="margin-top:8px">Кеңестік <b>солидарлы</b> зейнетақы жүйесі сақталды: бүгін жұмыс істейтіндердің жарнасы бүгінгі зейнеткерлерге төленеді. Жұмыс орындары азайғанда бұл жүйе қаражатқа жетпей қалды.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 PENSION -->
+  <section class="slide" data-sec="III тарау · Зейнетақы" data-min="3">
+<div class="pg">
+    <p class="kicker r">III тарау · Зейнетақы реформасы</p>
+    <h2 class="h2 r" style="max-width:1250px">1998: «Әркім өз болашағына жинайды»</h2>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 380px;gap:56px;margin-top:44px">
+      <div class="fact r big-cols"><div class="label">Бұрын · солидарлы жүйе</div><h3 class="colhead" style="margin-top:12px">Ұрпақтар келісімі</h3><p class="small">Жұмыс істейтіндер төлеген қаражат бірден бүгінгі зейнеткерлерге кетеді. Зейнеткерлер көбейіп, жұмыскерлер азайғанда жүйе әлсірейді.</p></div>
+      <div class="fact r big-cols" style="border-color:var(--red)"><div class="label red">1998 жылдан · жинақтаушы жүйе</div><h3 class="colhead" style="margin-top:12px">Жеке шот</h3><p class="small">Әр жұмыскер табысының 10%-ын өзінің жеке зейнетақы шотына аударады. Ақша инвестицияланып, кейін иесіне төленеді.</p></div>
+      <div class="r" style="text-align:right"><div class="big-num" style="font-size:190px">10%</div><div class="label" style="margin-top:10px">міндетті зейнетақы жарнасы</div></div>
+    </div>
+    <div class="cols r big-cols" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:56px">
+      <div><div class="label red">2013</div><p class="small" style="margin-top:6px">Барлық жеке зейнетақы қорлары бір <b>Бірыңғай жинақтаушы зейнетақы қорына (БЖЗҚ)</b> біріктірілді.</p></div>
+      <div><div class="label red">2024</div><p class="small" style="margin-top:6px"><b>Жұмыс берушінің міндетті зейнетақы жарнасы</b> енгізілді: 1,5%-дан басталып, 2028 жылға қарай 5%-ға дейін өседі.</p></div>
+    </div>
+  </div>
+  </section>
+
+  <!-- 09+ GAME 1 (generated) -->
+  <div id="slot-g1"></div>
+
+  <!-- EDUCATION -->
+  <section class="slide" data-sec="IV тарау · Білім" data-min="2">
+    <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:64px;height:100%">
+      <div class="vcol">
+        <p class="kicker r">IV тарау · Білім</p>
+        <h2 class="h2 r">Адамға салынған инвестиция</h2>
+        <p class="lead dropcap r" style="margin-top:26px">Конституция мемлекеттік мектептерде тегін орта білімге кепілдік береді. Ал 1993 жылғы 5 қарашада құрылған «Болашак» халықаралық стипендиясы қазақстандық жастарға әлемнің үздік университеттерінде тегін оқуға жол ашты. Алғашқы 187 стипендиат 1994 жылы оқуға аттанды.</p>
+        <div style="display:flex;gap:46px;align-items:end;margin-top:auto" class="r">
+          <div><div class="big-num" style="font-size:118px">12 731</div><div class="label" style="margin-top:10px">«Болашак» түлегі · 30 жылда</div></div>
+        </div>
+      </div>
+      <figure class="r">
+        <div class="ph r" data-img="Kazakh_schoolchildren_pose_with_teacher_in_2008.jpg"></div>
+        <figcaption><b>2008</b>Мұғалімімен бірге суретке түскен қазақстандық оқушылар. Фото: Wikimedia Commons</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- HEALTH -->
+  <section class="slide" data-sec="V тарау · Денсаулық" data-min="2">
+    <div style="display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:64px;height:100%">
+      <figure class="r">
+        <div class="ph r" data-img="Children's_Hospital_in_Almaty.jpg"></div>
+        <figcaption><b>Алматы</b>Балалар ауруханасы. Фото: Wikimedia Commons</figcaption>
+      </figure>
+      <div class="vcol">
+        <p class="kicker r">V тарау · Денсаулық сақтау</p>
+        <h2 class="h2 r">Екі деңгейлі қорғау</h2>
+        <div class="cols r" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:34px">
+          <div><h3 class="colhead">Тегін көмек</h3><p class="small">Тегін медициналық көмектің кепілдік берілген көлемі (ТМККК) барлық азаматтарға қолжетімді: жедел жәрдем, емхана, әлеуметтік маңызы бар аурулар.</p></div>
+          <div><h3 class="colhead">Сақтандыру</h3><p class="small">Міндетті әлеуметтік медициналық сақтандыру (МӘМС) қосымша пакет береді. Жүйе 2018 жылдан 2020 жылға ауыстырылып, 2020 жылғы 1 қаңтарда іске қосылды.</p></div>
+        </div>
+        <div class="r" style="display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:32px;border-top:3px solid var(--ink);padding-top:18px">
+          <div class="big-num" style="font-size:120px">2020</div>
+          <p class="small">Жауапкершілік бөлінді: мемлекет, жұмыс беруші және азаматтың өзі жарна төлейді. Балалар, зейнеткерлер, студенттер үшін мемлекет төлейді.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAMILY / NATIONAL FUND -->
+  <section class="slide" data-sec="VI тарау · Отбасы мен баспана" data-min="2">
+    <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:64px;height:100%">
+      <div class="vcol">
+        <p class="kicker r">VI тарау · Отбасы мен баспана</p>
+        <h2 class="h2 r">Әр балаға — Ұлттық қордан үлес</h2>
+        <p class="lead dropcap r" style="margin-top:26px">Бағдарлама 2024 жылы басталды: «Ұлттық қор — балаларға» бойынша Ұлттық қордың жылдық инвестициялық табысының 50%-ы 18 жасқа дейінгі барлық азамат-балалардың арнайы шотына есептеледі. Кәмелетке толғанда бұл қаражатты тек баспанаға немесе білім алуға жұмсауға болады.</p>
+        <div class="cols r" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:auto">
+          <div><div class="big-num" style="font-size:88px">50%</div><div class="label" style="margin-top:8px">Ұлттық қор табысынан</div></div>
+          <div><div class="big-num" style="font-size:88px">$100,52</div><div class="label" style="margin-top:8px">2024 жылы әр балаға</div></div>
+        </div>
+      </div>
+      <figure class="r">
+        <div class="ph r" data-img="Astana,_capital_of_Kazakhstan_05.jpg"></div>
+        <figcaption><b>Астана</b>Есіл жағалауындағы тұрғын үйлер. Фото: Ninaras, Wikimedia Commons</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- SOCIAL CODE -->
+  <section class="slide" data-sec="VII тарау · Жаңа кезең" data-min="3">
+<div class="pg">
+    <p class="kicker r">VII тарау · Жаңа кезең</p>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:60px;align-items:end">
+      <h2 class="h2 r" style="font-size:76px">Әлеуметтік кодекс: он заң — бір құжат</h2>
+      <div class="r" style="text-align:right"><div class="big-num" style="font-size:170px">10→1</div></div>
+    </div>
+    <p class="deckline r" style="max-width:1150px;margin-top:16px">Кодекске 2023 жылғы 20 сәуірде қол қойылды, ол 2023 жылғы 1 шілдеде күшіне енді. Бұрын шашыраңқы болған он заңның нормалары бір құжатқа жиналды.</p>
+    <div class="cols r big-cols" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:50px">
+      <div class="fact" style="border:0;padding-top:0"><div class="label red">Цифрлық отбасы картасы</div><p class="small" style="margin-top:8px">Мемлекет көмекке мұқтаж отбасын деректер арқылы өзі анықтап, көмекті өтінішсіз, <b>проактивті</b> ұсынады.</p></div>
+      <div class="fact" style="border:0;padding-top:0"><div class="label red">Бала күтімі</div><p class="small" style="margin-top:8px">Бала күтіміне арналған төлем бір жылдан <b>бір жарым жылға</b> дейін ұзартылды.</p></div>
+      <div class="fact" style="border:0;padding-top:0"><div class="label red">Жәрдемақылар</div><p class="small" style="margin-top:8px">Мүгедектік, асыраушысынан айырылу бойынша жәрдемақылар орта есеппен <b>14,5%-ға</b> өсті.</p></div>
+    </div>
+    <p class="pull r" style="margin-top:46px;font-size:32px">Мемлекет адамның өтінішін күтпей, көмекті өзі ұсынады: бұл — жаңа әлеуметтік саясаттың басты идеясы.</p>
+  </div>
+  </section>
+
+  <!-- VIDEO -->
+  <section class="slide" id="s-video" data-sec="Бейнерепортаж" data-min="2">
+    <div style="display:grid;grid-template-columns:450px minmax(0,1fr);gap:56px;height:100%">
+      <div style="display:flex;flex-direction:column;justify-content:center">
+        <p class="kicker r">Бейнерепортаж</p>
+        <h2 class="h2 r" style="font-size:56px">Екі минутта: әлеуметтік саясат бүгін</h2>
+        <p class="small r" style="margin-top:22px">Көріп болған соң бір сұрақ: бейнедегі қай шара сіздің отбасыңызға тікелей қатысты?</p>
+      </div>
+      <div class="vid r" id="vidBox"><div class="ph-msg"><b>Бейне осында</b>Бейнені қосу үшін репозиторийге <i>video.mp4</i> файлын жүктеңіз немесе кодтағы YOUTUBE_ID жолына YouTube бейнесінің кодын жазыңыз.</div></div>
+    </div>
+  </section>
+
+  <!-- GAME 2 (generated) -->
+  <div id="slot-g2"></div>
+
+  <!-- LEADERBOARD -->
+  <section class="slide" id="s-board" data-sec="Үздік оқырмандар" data-min="1" data-stage="board">
+    <div style="display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:90px;height:100%;align-items:center">
+      <div>
+        <p class="kicker r">Ойын қорытындысы</p>
+        <h1 class="display r" style="font-size:78px">Үздік оқырмандар</h1>
+        <p class="deckline r">Екі ойындағы дұрыс жауаптар саны бойынша.</p>
+      </div>
+      <ol class="lb r" id="board" style="margin:0;padding:0"></ol>
+    </div>
+  </section>
+
+  <!-- CONCLUSIONS -->
+  <section class="slide" data-sec="Қорытынды" data-min="3">
+<div class="pg">
+    <p class="kicker r">Қорытынды · Үш басты ой</p>
+    <h2 class="h2 r">Біз не түсіндік?</h2>
+    <div class="cols r" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:48px">
+      <div><div class="big-num" style="font-size:96px">I</div><p class="lead" style="margin-top:14px;font-size:26px">Тәуелсіздіктің алғашқы жылдары мемлекет өтпелі кезеңнің ауыр салдарын жеңіп, әлеуметтік қорғаудың жаңа жүйесін құрды.</p></div>
+      <div><div class="big-num" style="font-size:96px">II</div><p class="lead" style="margin-top:14px;font-size:26px">Зейнетақы мен медицина реформалары жауапкершілікті мемлекет, жұмыс беруші және азамат арасында бөлді.</p></div>
+      <div><div class="big-num" style="font-size:96px">III</div><p class="lead" style="margin-top:14px;font-size:26px">Бүгінгі саясат цифрлық әрі проактивті: Әлеуметтік кодекс пен «Ұлттық қор — балаларға» адамның өзіне бағытталған.</p></div>
+    </div>
+    <p class="deckline r" style="margin-top:48px;border-top:1px solid var(--ink);padding-top:22px">Талқылауға: сіздің ойыңызша, әлеуметтік саясаттың қай бағыты әлі де жетілдіруді қажет етеді және неге?</p>
+  </div>
+  </section>
+
+  <!-- REFLECTION (generated stage) -->
+  <section class="slide" id="s-refl" data-sec="Рефлексия" data-min="2" data-stage="refl">
+    <div style="display:grid;grid-template-columns:420px minmax(0,1fr);gap:70px;height:100%">
+      <div style="display:flex;flex-direction:column">
+        <p class="kicker r">Рефлексия</p>
+        <h2 class="h2 r" style="font-size:56px">Бір сөзбен: әлеуметтік саясат — бұл…</h2>
+        <p class="small r" style="margin-top:18px">Телефоннан бір сөз жазыңыз және сабақты 1-ден 5-ке дейін бағалаңыз.</p>
+        <div class="r" style="margin-top:auto;display:flex;gap:26px;align-items:end">
+          <div><div class="big-num" id="rateAvg" style="font-size:110px">0,0</div><div class="label" style="margin-top:8px">орташа баға · <span id="rateN">0</span> дауыс</div></div>
+          <div class="mini-qr" data-qr></div>
+        </div>
+      </div>
+      <div class="words r" id="words"></div>
+    </div>
+  </section>
+
+  <!-- SOURCES -->
+  <section class="slide" data-sec="Дереккөздер" data-min="1">
+    <div style="display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:70px;height:100%">
+      <div style="display:flex;flex-direction:column;justify-content:center">
+        <p class="kicker r">Соңғы бет</p>
+        <h1 class="display r" style="font-size:74px">Назарларыңызға рахмет!</h1>
+        <p class="deckline r">Сұрақтарыңыз болса, қоя беріңіз.</p>
+      </div>
+      <div class="r" style="align-self:center">
+        <div class="label" style="margin-bottom:14px">Дереккөздер</div>
+        <ol class="small" style="margin:0;padding-left:22px;font-size:17px;line-height:1.55">
+          <li>Қазақстан Республикасының Конституциясы, 1995 (1-бап, 30-бап).</li>
+          <li>Қазақстан Республикасының Ұлттық банкі: зейнетақы жүйесінің даму кезеңдері.</li>
+          <li>Kazpravda.kz: «Пенсионная система Казахстана: становление и развитие»; Әлеуметтік кодекс туралы материалдар, 2023.</li>
+          <li>Kazinform (inform.kz): әлеуметтік реформалар; «Болашак» бағдарламасының 30 жылдық қорытындысы.</li>
+          <li>gov.kz / egov.kz: «Болашак» стипендиясы; «Ұлттық қор — балаларға» бағдарламасы.</li>
+          <li>Zakon.kz, Kapital.kz: МӘМС-тің 2020 жылы іске қосылуы.</li>
+          <li>«Вопросы образования» (НИУ ВШЭ), 2014: «Болашак» бағдарламасы туралы.</li>
+        </ol>
+        <div class="label" style="margin:22px 0 8px">Фотосуреттер</div>
+        <p class="small" style="font-size:14px;color:var(--gray)">Wikimedia Commons: Brian Harrington Spier (CC BY-SA 2.0), Ninaras және басқа авторлар. Әр фотоның авторы суреттің астында көрсетілген.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+<div class="ctrl" id="ctrl">
+  <button data-c="prev" title="Артқа (←)">←</button>
+  <span class="info" id="cInfo">1 / 1</span>
+  <button data-c="next" title="Алға (→)">→</button>
+  <span class="sep"></span>
+  <button data-c="reveal" title="Жауапты ашу (R)">Жауапты ашу</button>
+  <button data-c="timer" title="Таймер (T)">Таймер</button>
+  <span class="sep"></span>
+  <button data-c="full" title="Толық экран (F)">Толық экран</button>
+  <button data-c="reset" id="btnReset" title="Барлық дауысты өшіру">Залды тазалау</button>
+  <span class="sep"></span>
+  <span class="live" id="liveCtrl" style="padding:0 10px;color:#bbb"><i></i><span>LIVE</span></span>
+</div>
+</div>
+
+<!-- ======================= PHONE ======================= -->
+<div id="phone" class="hidden">
+  <div class="p-wrap">
+    <div class="p-mast"><span class="nm">Ел жаршысы</span><span class="me" id="pMe">оқырман<br>—</span></div>
+    <div class="p-body" id="pBody"></div>
+    <div class="p-foot"><span>Әлеуметтік саясат</span><span class="live" id="pLive"><i></i><span>байланыс</span></span></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+{
+/* ======================= CONFIG ======================= */
+const CFG = {
+  authors: '04-P тобы',          // ← who made it (shown on the title page)
+  PUBLIC_URL: 'https://yerzhanuly-dinmukhammed.github.io/music-mood/social-policy/',                 // ← GitHub Pages link, e.g. 'https://yerzhanuly-dinmukhammed.github.io/social-policy/' (QR then works even if this file is opened from the computer)
+  YOUTUBE_ID: '',                 // ← e.g. 'dQw4w9WgXcQ' — leave empty to use video.mp4 from the repo
+  VIDEO_FILE: 'video.mp4',
+  TIMER: 20                       // seconds per game question
+};
+const APP = 'socpol-04p';         // channel name inside the shared Firebase database
+const NTFY = 'https://ntfy.sh/socpol-04p-kz-x7m2q9';
+const FIREBASE = {                // same project as the music-mood site (public web config)
+  apiKey: "AIzaSyCxV8pYlwBXLfs10A-yAdNaOWNPmz2HSMM",
+  authDomain: "music-mood-e7e6b.firebaseapp.com",
+  databaseURL: "https://music-mood-e7e6b-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "music-mood-e7e6b",
+  storageBucket: "music-mood-e7e6b.firebasestorage.app",
+  messagingSenderId: "1090314365995",
+  appId: "1:1090314365995:web:ccd36f41124d0ea4444e6e"
+};
+
+/* ======================= CONTENT ======================= */
+const Q = {
+  warm: {kind:'poll', prompt:'Әлеуметтік саясат дегенде ойыңызға алдымен не келеді?',
+         opts:['Зейнетақы','Білім','Денсаулық','Баспана','Жәрдемақы']},
+  g1_0: {kind:'quiz', game:1, head:'Үздік студенттер мемлекет есебінен шетелдің ең жақсы университеттеріне оқуға аттанады',
+         opts:['1993','2001','2010','2017'], ans:0,
+         why:'«Болашак» халықаралық стипендиясы 1993 жылғы 5 қарашада құрылды. Алғашқы 187 стипендиат 1994 жылы оқуға кетті, 30 жылда 12 731 адам диплом алды.'},
+  g1_1: {kind:'quiz', game:1, head:'Барлық жеке зейнетақы қорлары бір бірыңғай қорға біріктіріледі',
+         opts:['1998','2005','2013','2021'], ans:2,
+         why:'2013 жылы зейнетақы жинақтары Бірыңғай жинақтаушы зейнетақы қорына (БЖЗҚ) біріктірілді. Жинақтаушы жүйенің өзі 1998 жылдан бері жұмыс істейді.'},
+  g1_2: {kind:'quiz', game:1, head:'Міндетті медициналық сақтандыру іске қосылды: енді жарнаны мемлекет, жұмыс беруші және азамат бірге төлейді',
+         opts:['2008','2015','2020','2024'], ans:2,
+         why:'МӘМС 2020 жылғы 1 қаңтарда іске қосылды. Басында оны 2018 жылы бастау жоспарланған, бірақ сынға байланысты мерзімі ауыстырылды.'},
+  g1_3: {kind:'quiz', game:1, head:'Он заң бір құжатқа біріктірілді: жаңа Әлеуметтік кодекс күшіне енді',
+         opts:['2019','2021','2023','2025'], ans:2,
+         why:'Әлеуметтік кодекске 2023 жылғы 20 сәуірде қол қойылды, ол 1 шілдеде күшіне енді. Он заңның нормалары бір құжатқа жиналды.'},
+  g2_0: {kind:'tf', game:2, head:'Конституция бойынша Қазақстан — әлеуметтік мемлекет.', opts:['Ақиқат','Жалған'], ans:0,
+         why:'Ақиқат. 1995 жылғы Конституцияның 1-бабында Қазақстан демократиялық, зайырлы, құқықтық және әлеуметтік мемлекет деп жазылған.'},
+  g2_1: {kind:'tf', game:2, head:'Міндетті медициналық сақтандыру Қазақстанда 2010 жылы іске қосылды.', opts:['Ақиқат','Жалған'], ans:1,
+         why:'Жалған. МӘМС 2020 жылғы 1 қаңтарда іске қосылды.'},
+  g2_2: {kind:'tf', game:2, head:'Жинақтаушы жүйеде жұмыскер табысының 10%-ын өзінің зейнетақы шотына аударады.', opts:['Ақиқат','Жалған'], ans:0,
+         why:'Ақиқат. 1998 жылдан бері міндетті зейнетақы жарнасы табыстың 10%-ын құрайды, ал 2024 жылдан жұмыс беруші де жарна төлейді.'},
+  g2_3: {kind:'tf', game:2, head:'«Ұлттық қор — балаларға» ақшасын бала кез келген жаста алып, кез келген нәрсеге жұмсай алады.', opts:['Ақиқат','Жалған'], ans:1,
+         why:'Жалған. Қаражат 18 жасқа толғанда ғана беріледі және тек баспанаға немесе білім алуға жұмсалады.'},
+  g2_4: {kind:'tf', game:2, head:'Әлеуметтік кодекс бала күтіміне арналған төлемді бір жарым жылға дейін ұзартты.', opts:['Ақиқат','Жалған'], ans:0,
+         why:'Ақиқат. 2023 жылдан бастап бала күтімі бойынша төлем бір жылдан бір жарым жылға дейін ұзартылды.'},
+  rate: {kind:'rate', prompt:'Сабақ қаншалықты түсінікті болды?', opts:['1','2','3','4','5']},
+  word: {kind:'word', prompt:'Бір сөзбен: әлеуметтік саясат — бұл…'}
+};
+const G1 = ['g1_0','g1_1','g1_2','g1_3'], G2 = ['g2_0','g2_1','g2_2','g2_3','g2_4'], SCORED = [...G1, ...G2];
+const CHRON = [
+  ['1991','Тәуелсіздік. Кеңестік солидарлы зейнетақы жүйесі уақытша сақталды.'],
+  ['1993','5 қараша: «Болашак» халықаралық стипендиясы құрылды.'],
+  ['1995','Жаңа Конституция Қазақстанды әлеуметтік мемлекет деп жариялады.'],
+  ['1997','«Қазақстан — 2030» стратегиясы. Зейнетақы реформасы басталды.'],
+  ['1998','Жинақтаушы зейнетақы жүйесі іске қосылды: табыстың 10%-ы жеке шотқа.'],
+  ['2013','Зейнетақы қорлары бір БЖЗҚ-ға біріктірілді.'],
+  ['2020','Міндетті әлеуметтік медициналық сақтандыру (МӘМС) іске қосылды.'],
+  ['2023','Әлеуметтік кодекс күшіне енді. Цифрлық отбасы картасы.'],
+  ['2024','«Ұлттық қор — балаларға» бағдарламасы басталды.']
+];
+const TOC = ['Әлеуметтік мемлекет деген не?','1990-жылдар: өтпелі кезең','Зейнетақы реформасы','Ойын: «Жедел шығарылым»','Білім, денсаулық, отбасы','Әлеуметтік кодекс','Бейнерепортаж','Ойын: «Ақиқат па, жалған ба?»','Қорытынды және рефлексия'];
+
+/* ======================= HELPERS ======================= */
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v) } catch { return d } },
+                set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch {} } };
+const rid = () => Math.random().toString(36).slice(2, 9);
+const IMG = (f, w = 1400) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(f)}?width=${w}`;
+const LET = 'ABCDE';
+
+/* ======================= REALTIME: Firebase (primary) · ntfy.sh (fallback) ======================= */
+let fbDb = null, fbOff = 0;
+function fb() {
+  if (!FIREBASE || !window.firebase) return false;
+  try { if (!fbDb) { firebase.initializeApp(FIREBASE); fbDb = firebase.database(); fbDb.ref('.info/serverTimeOffset').on('value', x => fbOff = x.val() || 0) } } catch { return false }
+  return true;
+}
+const pub = obj => {
+  obj.app = APP;
+  if (fb()) return fbDb.ref('msgs').push({m: JSON.stringify(obj), ts: firebase.database.ServerValue.TIMESTAMP}).catch(() => {});
+  return fetch(NTFY, {method:'POST', body: JSON.stringify(obj)}).catch(() => {});
+};
+function sub(onMsg, onState, hours = 3) {
+  const take = (o, ts) => { if (o && o.app === APP) onMsg(o, ts) };
+  if (fb()) {
+    fbDb.ref('msgs').orderByChild('ts').startAt(Date.now() + fbOff - hours * 36e5)
+      .on('child_added', x => { const v = x.val(); try { take(JSON.parse(v.m), v.ts || Date.now()) } catch {} });
+    fbDb.ref('.info/connected').on('value', x => onState(!!x.val()));
+    return;
+  }
+  let es, retry = 0;
+  const open = () => {
+    es = new EventSource(`${NTFY}/sse?since=${hours}h`);
+    es.onopen = () => { retry = 0; onState(true) };
+    es.onmessage = e => { try { const m = JSON.parse(e.data); if (m.event === 'message') take(JSON.parse(m.message), m.time * 1000) } catch {} };
+    es.onerror = () => { onState(false); es.close(); setTimeout(open, Math.min(8000, 1000 * ++retry)) };
+  };
+  open();
+}
+const setLive = (el, ok, txtOk, txtNo) => { if (!el) return; el.classList.toggle('ok', ok); const s = el.querySelector('span'); if (s) s.textContent = ok ? txtOk : txtNo };
+
+/* ======================= ROUTER ======================= */
+const isPhone = location.hash === '#join';
+$(isPhone ? '#phone' : '#deck').classList.remove('hidden');
+addEventListener('hashchange', () => location.reload());
+isPhone ? initPhone() : initDeck();
+
+/* ======================= DECK ======================= */
+function initDeck() {
+  /* ---- build generated slides ---- */
+  const optRows = q => Q[q].opts.map((o, i) => `<div class="opt" data-o="${i}"><span class="k">${LET[i]}</span><span class="tx">${esc(o)}</span><span class="pc">0%</span><div class="bar"><i></i></div></div>`).join('');
+  $('#slot-warm').outerHTML = `
+  <section class="slide" data-sec="Жылыту" data-min="2" data-stage="q" data-q="warm">
+    <div style="display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:80px;height:100%;align-items:center">
+      <div><p class="kicker r">Бірінші сұрақ · Залға</p><h2 class="h2 r">${esc(Q.warm.prompt)}</h2>
+        <div class="r" style="display:flex;align-items:end;gap:28px;margin-top:40px"><div class="mini-qr" data-qr></div>
+        <div><div class="counter" style="font-size:90px" data-n>0</div><div class="label">жауап</div></div></div></div>
+      <div class="r">${optRows('warm')}</div>
+    </div>
+  </section>`;
+  const gameIntro = (n, title, deck, rules) => `
+  <section class="slide" data-sec="${n === 1 ? 'Ойын I' : 'Ойын II'}" data-min="1" data-stage="idle">
+    <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:80px;height:100%;align-items:center">
+      <div><p class="kicker r">Ойын ${n === 1 ? 'I' : 'II'} · Телефоныңызды дайындаңыз</p><h1 class="display r" style="font-size:118px">${title}</h1><p class="deckline r">${deck}</p></div>
+      <div class="r"><div class="box"><div class="label red" style="margin-bottom:14px">Ережесі</div>${rules.map(t => `<p class="small" style="border-top:1px solid var(--rule);padding:10px 0">${t}</p>`).join('')}</div>
+      <div style="display:flex;gap:22px;align-items:center;margin-top:24px"><div class="mini-qr" data-qr></div><p class="small">Әлі қосылмадыңыз ба? Кодты сканерлеңіз.</p></div></div>
+    </div>
+  </section>`;
+  $('#slot-g1').outerHTML = gameIntro(1, 'Жедел шығарылым', 'Алдыңызда өткен жылдардың газет беттері. Тақырыпты оқып, бұл жаңалық қай жылы шыққанын табыңыз.',
+    ['Әр сұраққа ' + CFG.TIMER + ' секунд беріледі.', 'Жауапты телефоннан таңдаңыз, уақыт біткенше өзгертуге болады.', 'Дұрыс жауап — 1 ұпай. Ұпайлар екі ойын бойы жиналады.'])
+    + G1.map((q, i) => `
+  <section class="slide hide-dist qslide" data-sec="Ойын I · ${i + 1}/${G1.length}" data-min="1.5" data-stage="q" data-q="${q}">
+    <div style="display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:60px;height:100%">
+      <div class="front r">
+        <div class="fm"><span class="nm">Ел жаршысы</span><span class="dt">Жедел шығарылым<br>№ ${i + 1}</span></div>
+        <div class="yr" data-yr>____ жыл</div>
+        <div class="hl">${esc(Q[q].head)}</div>
+        <div class="why"><div class="label red">Түсініктеме</div><p>${esc(Q[q].why)}</p></div>
+        <div class="sub"><span></span><span></span><span></span></div>
+        <div class="stamp">${esc(Q[q].opts[Q[q].ans])}</div>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <p class="kicker r">Сұрақ ${i + 1} · Бұл жаңалық қай жылы шықты?</p>
+        <div class="r">${optRows(q)}</div>
+        <div class="r" style="margin-top:auto;display:flex;align-items:end;gap:24px">
+          <div class="mini-qr" data-qr></div>
+          <div style="flex:1"><div class="label"><span data-n>0</span> жауап</div><div class="timer" style="margin-top:12px"><div class="tb"><i></i></div><span class="tn">${CFG.TIMER}</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>`).join('');
+  $('#slot-g2').outerHTML = gameIntro(2, 'Ақиқат па, жалған ба?', 'Бес тұжырым. Әрқайсысы шындық па, әлде қате ме? Сабақта естігеніңізді еске түсіріңіз.',
+    ['Әр тұжырымға ' + CFG.TIMER + ' секунд.', 'Телефоннан «Ақиқат» немесе «Жалған» таңдаңыз.', 'Бірінші ойындағы ұпайлар сақталады, жеңімпаз соңында анықталады.'])
+    + G2.map((q, i) => `
+  <section class="slide hide-dist" data-sec="Ойын II · ${i + 1}/${G2.length}" data-min="1.2" data-stage="q" data-q="${q}">
+    <div class="pg" style="gap:36px">
+      <div class="r" style="display:flex;justify-content:space-between;align-items:center;gap:40px">
+        <p class="kicker" style="margin:0">Тұжырым ${i + 1} / ${G2.length} · Ақиқат па, жалған ба?</p>
+        <div style="display:flex;align-items:center;gap:22px;width:440px">
+          <div style="flex:1"><div class="label"><span data-n>0</span> жауап</div><div class="timer" style="margin-top:10px"><div class="tb"><i></i></div><span class="tn">${CFG.TIMER}</span></div></div>
+          <div class="mini-qr" data-qr style="width:96px"></div>
+        </div>
+      </div>
+      <div style="position:relative;min-height:230px;display:flex;align-items:center">
+        <p class="statement r" style="max-width:1060px">${esc(Q[q].head)}</p>
+        <div class="stamp" style="top:50px;right:20px">${Q[q].ans === 0 ? 'АҚИҚАТ' : 'ЖАЛҒАН'}</div>
+      </div>
+      <div class="tf r">
+        ${Q[q].opts.map((o, j) => `<div class="side" data-o="${j}"><div class="nm">${o}</div><div class="pc">0%</div><div class="bar"><i></i></div></div>`).join('')}
+      </div>
+      <div class="why" style="border-top:1px solid var(--ink);padding-top:14px;min-height:62px"><p style="margin:0;font-size:23px">${esc(Q[q].why)}</p></div>
+    </div>
+  </section>`).join('');
+
+  /* ---- static fills ---- */
+  $$('[data-cfg]').forEach(e => e.textContent = CFG[e.dataset.cfg] || '');
+  $('#toc').innerHTML = TOC.map((t, i) => `<li class="r" style="display:grid;grid-template-columns:70px minmax(0,1fr);align-items:baseline;border-bottom:1px solid var(--rule);padding:11px 0">
+    <span style="font:900 30px/1 var(--serif);color:${i === 3 || i === 7 ? 'var(--red)' : 'var(--silver)'}">${String(i + 1).padStart(2, '0')}</span><span style="font:700 27px/1.2 var(--serif)">${t}</span></li>`).join('');
+  const per = Math.ceil(CHRON.length / 3);
+  $('#chron').innerHTML = [0, 1, 2].map(c => `<div>${CHRON.slice(c * per, c * per + per).map(([y, t]) =>
+    `<div style="padding:4px 0 22px"><div style="font:900 62px/1 var(--serif);color:${['1995','2023'].includes(y) ? 'var(--red)' : 'var(--ink)'}">${y}</div><p class="small" style="margin-top:8px">${t}</p></div>`).join('')}</div>`).join('');
+  $$('.ph[data-img]').forEach(p => {
+    const im = new Image(); im.onload = () => p.style.backgroundImage = `url("${im.src}")`; im.onerror = () => p.classList.add('broken'); im.src = IMG(p.dataset.img);
+  });
+  // video
+  const vb = $('#vidBox');
+  if (CFG.YOUTUBE_ID) vb.innerHTML = `<iframe src="https://www.youtube.com/embed/${encodeURIComponent(CFG.YOUTUBE_ID)}?rel=0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+  else { const v = document.createElement('video'); v.controls = true; v.preload = 'metadata'; v.src = CFG.VIDEO_FILE; v.onloadedmetadata = () => vb.prepend(v); }
+
+  /* ---- slides, masthead, folio ---- */
+  const slides = $$('.slide');
+  slides.forEach((s, i) => {
+    s.insertAdjacentHTML('afterbegin', `<div class="mast"><span>${esc(s.dataset.sec || '')}</span><span class="nm">Ел жаршысы</span><span class="rt">Қазақстан тарихы · бет ${i + 1}</span></div>`);
+    s.insertAdjacentHTML('beforeend', `<div class="folio"><span>Қазақстан Республикасындағы әлеуметтік саясат</span><span>${esc(CFG.authors)} · ${String(i + 1).padStart(2, '0')} / ${slides.length}</span></div>`);
+    $$('.r', s).forEach((e, k) => e.style.setProperty('--i', k));
+  });
+
+  /* ---- QR ---- */
+  const local = location.protocol === 'file:' && !CFG.PUBLIC_URL;
+  const joinUrl = (CFG.PUBLIC_URL || location.href.split('#')[0]).replace(/\/?$/, m => CFG.PUBLIC_URL ? '/' : m).replace(/\/\/$/, '/') + '#join';
+  $('#joinUrl').textContent = joinUrl.replace(/^https?:\/\//, '');
+  try {
+    const q = qrcode(0, 'M'); q.addData(joinUrl); q.make();
+    $('#qrBig').innerHTML = q.createSvgTag({cellSize: 8, margin: 0, scalable: true});
+    if (local) $('#qrBig').insertAdjacentHTML('afterend', `<p style="margin:14px 0 0;font:700 16px/1.4 var(--sans);color:var(--red)">QR жұмыс істемейді: сайт компьютерден ашылған. Сайтты GitHub Pages-ке жүктеңіз немесе кодтағы PUBLIC_URL жолына сілтемені жазыңыз.</p>`);
+    $$('[data-qr]').forEach(e => e.innerHTML = q.createSvgTag({cellSize: 4, margin: 0, scalable: true}));
+  } catch { $('#qrBig').textContent = joinUrl }
+
+  /* ---- scale ---- */
+  const fit = () => $('#stage').style.setProperty('--s', Math.min(innerWidth / 1600, innerHeight / 900));
+  addEventListener('resize', fit); fit();
+
+  /* ---- room state ---- */
+  let sid = store.get('sp_sid', null); if (!sid) { sid = rid(); store.set('sp_sid', sid) }
+  let S = fresh();
+  function fresh() { return {names: new Map(), votes: {}, words: [], revealed: new Set(store.get('sp_rev_' + sid, []))} }
+  let cur = Math.min(store.get('sp_cur', 0), slides.length - 1);
+
+  function onMsg(m) {
+    if (m.sid !== sid) return;
+    if (m.t === 'join' && m.pid) { const isNew = !S.names.has(m.pid); S.names.set(m.pid, String(m.name || 'Оқырман').slice(0, 24)); if (isNew) renderJoin(); }
+    else if (m.t === 'vote' && Q[m.q] && m.pid) {
+      if (m.name) S.names.set(m.pid, String(m.name).slice(0, 24));
+      if (S.revealed.has(m.q) && Q[m.q].ans != null) return;      // late votes after reveal don't count
+      (S.votes[m.q] = S.votes[m.q] || {})[m.pid] = +m.a; renderQ(m.q); if (m.q === 'rate') renderRefl();
+    }
+    else if (m.t === 'word' && m.pid) { const w = String(m.w || '').trim().slice(0, 28); if (w) { S.words.push(w); renderRefl() } }
+    else if (m.t === 'hello') broadcast();
+  }
+  sub(onMsg, ok => { setLive($('#liveTag'), ok, 'LIVE · бөлме ' + sid, 'байланыс жоқ, қайта қосылуда'); setLive($('#liveCtrl'), ok, 'LIVE', 'OFFLINE') });
+
+  /* ---- render ---- */
+  function renderJoin() {
+    $('#cJoined').textContent = S.names.size;
+    $('#joinNames').innerHTML = [...S.names.values()].slice(-24).map(n => `<span>${esc(n)}</span>`).join('');
+  }
+  function tally(q) { const v = Object.values(S.votes[q] || {}), c = Q[q].opts.map(() => 0); v.forEach(a => { if (c[a] != null) c[a]++ }); return {c, n: v.length} }
+  function renderQ(q) {
+    const s = slides.find(x => x.dataset.q === q); if (!s) return;
+    const {c, n} = tally(q), rev = S.revealed.has(q), ans = Q[q].ans;
+    $$('[data-n]', s).forEach(e => e.textContent = n);
+    $$('[data-o]', s).forEach(e => {
+      const i = +e.dataset.o, p = n ? Math.round(c[i] / n * 100) : 0;
+      $('.pc', e).textContent = p + '%'; $('.bar i', e).style.width = p + '%';
+      e.classList.toggle('win', rev && i === ans); e.classList.toggle('dim', rev && ans != null && i !== ans);
+    });
+    if (Q[q].ans != null) { s.classList.toggle('hide-dist', !rev); s.classList.toggle('revealed', rev); const y = $('[data-yr]', s); if (y) { y.textContent = rev ? Q[q].opts[ans] + ' жыл' : '____ жыл'; y.style.color = rev ? 'var(--red)' : '' } }
+  }
+  function scores() {
+    const sc = new Map();
+    SCORED.filter(q => S.revealed.has(q)).forEach(q => Object.entries(S.votes[q] || {}).forEach(([pid, a]) => { if (a === Q[q].ans) sc.set(pid, (sc.get(pid) || 0) + 1) }));
+    return [...S.names.keys()].map(pid => [S.names.get(pid), sc.get(pid) || 0]).sort((a, b) => b[1] - a[1]);
+  }
+  function renderBoard() {
+    const top = scores().slice(0, 8), total = SCORED.filter(q => S.revealed.has(q)).length;
+    $('#board').innerHTML = top.length ? top.map(([n, p]) => `<li><b>${esc(n)}</b><span>${p} / ${total}</span></li>`).join('')
+      : `<li><b style="color:var(--gray);font-style:italic;font-weight:400">Әзірге ешкім ойнаған жоқ</b><span></span></li>`;
+  }
+  function renderRefl() {
+    const v = Object.values(S.votes.rate || {});
+    $('#rateN').textContent = v.length; $('#rateAvg').textContent = v.length ? (v.reduce((a, b) => a + b + 1, 0) / v.length).toFixed(1).replace('.', ',') : '0,0';
+    const f = {}; S.words.forEach(w => { const k = w.toLowerCase(); f[k] = f[k] || {w, n: 0}; f[k].n++ });
+    const arr = Object.values(f).sort((a, b) => b.n - a.n).slice(0, 40), mx = arr.length ? arr[0].n : 1;
+    $('#words').innerHTML = arr.length ? arr.map(o => `<span style="font-size:${Math.round(30 + 66 * o.n / mx)}px">${esc(o.w)}</span>`).join('')
+      : `<span style="font-size:34px;color:var(--silver);font-style:italic;font-weight:400">Жауаптар осында пайда болады…</span>`;
+  }
+
+  /* ---- stage broadcast (phones follow the screen) ---- */
+  function stageObj() {
+    const s = slides[cur], st = s.dataset.stage || 'idle';
+    if (st === 'q') { const q = s.dataset.q; return {stage: 'q', q, kind: Q[q].kind, prompt: Q[q].prompt || (Q[q].kind === 'quiz' ? 'Бұл жаңалық қай жылы шықты?' : 'Бұл тұжырым ақиқат па?'),
+      head: Q[q].head || '', opts: Q[q].opts, reveal: S.revealed.has(q) && Q[q].ans != null ? Q[q].ans : -1} }
+    if (st === 'refl') return {stage: 'refl', prompt: Q.word.prompt, rprompt: Q.rate.prompt};
+    if (st === 'board') { const sc = scores(); return {stage: 'board', ranks: sc.slice(0, 50).map(x => x[0]), pts: sc.slice(0, 50).map(x => x[1])} }
+    return {stage: st, sec: s.dataset.sec};
+  }
+  let lastB = 0;
+  function broadcast() { lastB = Date.now(); pub({t: 'stage', sid, ...stageObj()}) }
+  setInterval(() => { if (Date.now() - lastB > 9000) broadcast() }, 3000);
+
+  /* ---- timer ---- */
+  let tmr = null;
+  function startTimer() {
+    clearInterval(tmr); const s = slides[cur]; const t = $('.timer', s); if (!t) return;
+    const bar = $('.tb i', t), num = $('.tn', t), t0 = Date.now(), T = CFG.TIMER * 1000;
+    bar.style.transition = 'none'; bar.style.transform = 'scaleX(0)'; void bar.offsetWidth;
+    bar.style.transition = `transform ${CFG.TIMER}s linear`; bar.style.transform = 'scaleX(1)'; bar.style.background = 'var(--ink)';
+    tmr = setInterval(() => { const left = Math.max(0, Math.ceil((T - (Date.now() - t0)) / 1000)); num.textContent = left;
+      if (left <= 5) bar.style.background = 'var(--red)'; if (!left) { clearInterval(tmr); num.textContent = '0' } }, 200);
+  }
+
+  /* ---- navigation ---- */
+  function go(n) {
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    slides[cur].classList.remove('active'); cur = n; store.set('sp_cur', cur);
+    const s = slides[cur]; void s.offsetWidth; s.classList.add('active');
+    $('#progress').style.width = ((cur + 1) / slides.length * 100) + '%';
+    const left = slides.slice(cur).reduce((a, x) => a + (+x.dataset.min || 0), 0);
+    $('#cInfo').textContent = `${cur + 1} / ${slides.length} · қалды ≈ ${Math.round(left)} мин`;
+    clearInterval(tmr);
+    if (s.id === 's-join') renderJoin();
+    if (s.id === 's-board') renderBoard();
+    if (s.id === 's-refl') renderRefl();
+    if (s.dataset.q) { renderQ(s.dataset.q); if (Q[s.dataset.q].ans != null && !S.revealed.has(s.dataset.q)) startTimer() }
+    if (s.id !== 's-video') $$('video', $('#vidBox')).forEach(v => v.pause());
+    broadcast();
+  }
+  function reveal() {
+    const q = slides[cur].dataset.q; if (!q || Q[q].ans == null) return;
+    S.revealed.add(q); store.set('sp_rev_' + sid, [...S.revealed]); clearInterval(tmr); renderQ(q); broadcast();
+  }
+  function resetRoom() {
+    sid = rid(); store.set('sp_sid', sid); S = fresh(); renderJoin(); renderRefl(); SCORED.concat('warm').forEach(renderQ); go(cur);
+  }
+  let armT = null;
+  const act = c => {
+    if (c === 'next') go(cur + 1); else if (c === 'prev') go(cur - 1); else if (c === 'reveal') reveal(); else if (c === 'timer') startTimer();
+    else if (c === 'full') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}) }
+    else if (c === 'reset') { const b = $('#btnReset');
+      if (!b.classList.contains('arm')) { b.classList.add('arm'); b.textContent = 'Растау: тағы басыңыз'; clearTimeout(armT); armT = setTimeout(() => { b.classList.remove('arm'); b.textContent = 'Залды тазалау' }, 3500) }
+      else { clearTimeout(armT); b.classList.remove('arm'); b.textContent = 'Залды тазалау'; resetRoom() } }
+  };
+  $$('#ctrl [data-c]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); act(b.dataset.c) }));
+  addEventListener('keydown', e => {
+    if (e.target.closest('input,textarea')) return;
+    const k = e.key;
+    if (['ArrowRight','PageDown',' ','Enter'].includes(k)) { e.preventDefault(); act('next') }
+    else if (['ArrowLeft','PageUp','Backspace'].includes(k)) { e.preventDefault(); act('prev') }
+    else if (k === 'r' || k === 'R' || k === 'к' || k === 'К') act('reveal');
+    else if (k === 't' || k === 'T' || k === 'е' || k === 'Е') act('timer');
+    else if (k === 'f' || k === 'F' || k === 'а' || k === 'А') act('full');
+    else if (k === 'Home') go(0); else if (k === 'End') go(slides.length - 1);
+  });
+  let sx = null; addEventListener('touchstart', e => sx = e.touches[0].clientX, {passive: true});
+  addEventListener('touchend', e => { if (sx == null) return; const d = e.changedTouches[0].clientX - sx; if (Math.abs(d) > 60) act(d < 0 ? 'next' : 'prev'); sx = null });
+  let hideT; addEventListener('mousemove', () => { $('#ctrl').classList.add('show'); clearTimeout(hideT); hideT = setTimeout(() => $('#ctrl').classList.remove('show'), 2200) });
+
+  renderRefl(); go(cur);
+}
+
+/* ======================= PHONE ======================= */
+function initPhone() {
+  let pid = store.get('sp_pid', null); if (!pid) { pid = rid(); store.set('sp_pid', pid) }
+  let name = store.get('sp_name', '');
+  let stage = null, sid = null, joinedSid = null, lastTs = 0;
+  const my = () => store.get('sp_my_' + sid, {});
+  const setMy = (q, a) => { const m = my(); m[q] = a; store.set('sp_my_' + sid, m) };
+  const body = $('#pBody');
+
+  function head() {
+    const m = sid ? my() : {}; let pts = 0, done = 0;
+    Object.keys(m).forEach(q => { if (m['rev_' + q] != null) { done++; if (m[q] === m['rev_' + q]) pts++ } });
+    $('#pMe').innerHTML = name ? `оқырман<br><b style="color:var(--ink)">${esc(name)}</b> · ${pts} ұпай` : 'оқырман<br>—';
+  }
+  function askName() {
+    body.innerHTML = `<div class="p-kick">Оқырмандар клубы</div><h1 class="p-q">Атыңыз кім?</h1>
+      <input class="p-in" id="nm" maxlength="24" autocomplete="name" placeholder="Мысалы: Айзере" value="${esc(name)}">
+      <div class="p-err" id="nmErr"></div><button class="p-btn" id="nmGo">Кіру</button>
+      <p class="p-note">Атыңыз жеңімпаздар тізімінде экранда көрінеді.</p>`;
+    const inp = $('#nm'), err = $('#nmErr');
+    inp.addEventListener('input', () => err.textContent = '');
+    const go = () => { const v = inp.value.trim(); if (!v) { err.textContent = 'Алдымен атыңызды жазыңыз'; inp.focus(); return }
+      name = v.slice(0, 24); store.set('sp_name', name); joinedSid = null; join(); render() };
+    $('#nmGo').onclick = go; inp.addEventListener('keydown', e => { if (e.key === 'Enter') go() });
+  }
+  function join() { if (sid && name && joinedSid !== sid) { joinedSid = sid; pub({t: 'join', sid, pid, name}) } }
+
+  function render() {
+    head();
+    if (!name) return askName();
+    if (!stage) { body.innerHTML = `<div class="p-wait"><div class="orn">✦</div><h1 class="p-q" style="margin-top:14px">Қосылуда…</h1><p class="p-note">Экрандағы сабаққа байланыс орнатылып жатыр.</p></div>`; return }
+    const st = stage;
+    if (st.stage === 'q') {
+      const m = my(), mine = m[st.q], rev = st.reveal, isQuiz = st.kind === 'quiz' || st.kind === 'tf';
+      if (rev >= 0) { m['rev_' + st.q] = rev; store.set('sp_my_' + sid, m); head() }
+      const kick = st.kind === 'poll' ? 'Залға сұрақ' : st.kind === 'quiz' ? 'Ойын I · Жедел шығарылым' : 'Ойын II · Ақиқат па, жалған ба?';
+      body.innerHTML = `<div class="p-kick">${kick}</div>
+        ${st.head ? `<h1 class="p-q it">«${esc(st.head)}»</h1><p class="p-note" style="margin:-8px 0 16px">${esc(st.prompt)}</p>` : `<h1 class="p-q">${esc(st.prompt)}</h1>`}
+        <div>${st.opts.map((o, i) => `<button class="p-opt${mine === i ? ' sel' : ''}${rev === i ? ' ok' : ''}" data-a="${i}" ${rev >= 0 ? 'disabled' : ''}><i>${LET[i]}</i>${esc(o)}</button>`).join('')}</div>
+        ${rev >= 0 ? `<p class="p-res ${mine === rev ? 'good' : ''}">${mine == null ? 'Сіз жауап бермедіңіз.' : mine === rev ? 'Дұрыс! +1 ұпай' : 'Бұл жолы қате. Келесіде сәт сапар!'}</p>`
+          : `<p class="p-note">${mine != null ? (isQuiz ? 'Жауабыңыз қабылданды. Жауап ашылғанша өзгертуге болады.' : 'Рахмет! Жауабыңыз экранда.') : 'Бір жауапты таңдаңыз.'}</p>`}`;
+      $$('[data-a]', body).forEach(b => b.onclick = () => { const a = +b.dataset.a; setMy(st.q, a); join(); pub({t: 'vote', sid, q: st.q, a, pid, name});
+        if (navigator.vibrate) navigator.vibrate(15); render() });
+      return;
+    }
+    if (st.stage === 'refl') {
+      const m = my(), r = m.rate, sent = m.wordSent;
+      body.innerHTML = `<div class="p-kick">Рефлексия</div><h1 class="p-q" style="font-size:25px">${esc(st.rprompt)}</h1>
+        <div class="p-rate">${[1,2,3,4,5].map((n, i) => `<button class="p-opt${r === i ? ' sel' : ''}" data-r="${i}">${n}</button>`).join('')}</div>
+        <h1 class="p-q" style="font-size:25px;margin-top:22px">${esc(st.prompt)}</h1>
+        ${sent ? `<p class="p-res good">«${esc(sent)}» — экранда!</p><button class="p-btn" id="wAgain" style="background:var(--ink)">Тағы бір сөз жазу</button>`
+          : `<input class="p-in" id="w" maxlength="28" placeholder="Мысалы: қамқорлық"><div class="p-err" id="wErr"></div><button class="p-btn" id="wGo">Жіберу</button>`}`;
+      $$('[data-r]', body).forEach(b => b.onclick = () => { const a = +b.dataset.r; setMy('rate', a); join(); pub({t: 'vote', sid, q: 'rate', a, pid, name}); render() });
+      if (sent) $('#wAgain').onclick = () => { setMy('wordSent', null); render() };
+      else { const inp = $('#w'), err = $('#wErr'); inp.addEventListener('input', () => err.textContent = '');
+        const go = () => { const v = inp.value.trim(); if (!v) { err.textContent = 'Алдымен бір сөз жазыңыз'; inp.focus(); return }
+          join(); pub({t: 'word', sid, pid, name, w: v.slice(0, 28)}); setMy('wordSent', v.slice(0, 28)); render() };
+        $('#wGo').onclick = go; inp.addEventListener('keydown', e => { if (e.key === 'Enter') go() }); }
+      return;
+    }
+    if (st.stage === 'board') {
+      const i = (st.ranks || []).indexOf(name);
+      body.innerHTML = `<div class="p-wait"><div class="orn">✦</div><div class="p-kick" style="margin-top:14px">Ойын қорытындысы</div>
+        <h1 class="p-q">${i === 0 ? 'Құттықтаймыз! Сіз бірінші орындасыз!' : i > 0 ? `Сіз ${i + 1}-орындасыз` : 'Экранға қараңыз'}</h1>
+        ${i >= 0 ? `<p class="p-note">${st.pts[i]} дұрыс жауап</p>` : ''}</div>`;
+      return;
+    }
+    body.innerHTML = `<div class="p-wait"><div class="orn">✦</div><div class="p-kick" style="margin-top:14px">${esc(st.sec || 'Сабақ жүріп жатыр')}</div>
+      <h1 class="p-q">Экранға қараңыз</h1><p class="p-note">Келесі сұрақ шыққанда осы бетте автоматты түрде пайда болады.</p></div>`;
+  }
+
+  sub((m, ts) => {
+    if (m.t !== 'stage' || !m.sid) return;
+    if (ts < lastTs) return; lastTs = ts;
+    const changed = !stage || m.sid !== sid || m.stage !== stage.stage || m.q !== stage.q || m.reveal !== stage.reveal || JSON.stringify(m.pts) !== JSON.stringify(stage.pts);
+    sid = m.sid; stage = m; join(); if (changed) render();
+  }, ok => setLive($('#pLive'), ok, 'байланыс бар', 'қайта қосылуда'), 1);
+  render();
+}
+}
+</script>
+</body>
+</html>
