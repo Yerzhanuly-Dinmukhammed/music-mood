@@ -754,8 +754,10 @@ function initDeck() {
   let S = fresh();
   function fresh() { return {names: new Map(), votes: {}, words: [], revealed: new Set(store.get('sp_rev_' + sid, []))} }
   let cur = Math.min(store.get('sp_cur', 0), slides.length - 1);
+  const did = rid(); let actT = Date.now(), standby = false;   // the screen used most recently is in charge; others go quiet
 
   function onMsg(m) {
+    if (m.t === 'stage' && m.did && m.did !== did && (m.act || 0) > actT) { standby = true; return }
     if (m.sid !== sid) return;
     if (m.t === 'join' && m.pid) { const isNew = !S.names.has(m.pid); S.names.set(m.pid, String(m.name || 'Оқырман').slice(0, 24)); if (isNew) renderJoin(); }
     else if (m.t === 'vote' && Q[m.q] && m.pid) {
@@ -814,8 +816,9 @@ function initDeck() {
     return {stage: st, sec: s.dataset.sec};
   }
   let lastB = 0;
-  function broadcast() { lastB = Date.now(); pub({t: 'stage', sid, ...stageObj()}) }
+  function broadcast() { if (standby) return; lastB = Date.now(); pub({t: 'stage', sid, did, act: actT, ...stageObj()}) }
   setInterval(() => { if (Date.now() - lastB > 9000) broadcast() }, 3000);
+  const touch = () => { actT = Date.now(); standby = false };
 
   /* ---- timer ---- */
   let tmr = null;
@@ -853,6 +856,7 @@ function initDeck() {
   }
   let armT = null;
   const act = c => {
+    touch();
     if (c === 'next') go(cur + 1); else if (c === 'prev') go(cur - 1); else if (c === 'reveal') reveal(); else if (c === 'timer') startTimer();
     else if (c === 'full') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}) }
     else if (c === 'reset') { const b = $('#btnReset');
@@ -881,7 +885,7 @@ function initDeck() {
 function initPhone() {
   let pid = store.get('sp_pid', null); if (!pid) { pid = rid(); store.set('sp_pid', pid) }
   let name = store.get('sp_name', '');
-  let stage = null, sid = null, joinedSid = null, lastTs = 0;
+  let stage = null, sid = null, joinedSid = null, lastTs = 0, bestAct = 0;
   const my = () => store.get('sp_my_' + sid, {});
   const setMy = (q, a) => { const m = my(); m[q] = a; store.set('sp_my_' + sid, m) };
   const body = $('#pBody');
@@ -950,6 +954,7 @@ function initPhone() {
 
   sub((m, ts) => {
     if (m.t !== 'stage' || !m.sid) return;
+    if ((m.act || 0) < bestAct) return; bestAct = m.act || 0;
     if (ts < lastTs) return; lastTs = ts;
     const changed = !stage || m.sid !== sid || m.stage !== stage.stage || m.q !== stage.q || m.reveal !== stage.reveal || JSON.stringify(m.pts) !== JSON.stringify(stage.pts);
     sid = m.sid; stage = m; join(); if (changed) render();
