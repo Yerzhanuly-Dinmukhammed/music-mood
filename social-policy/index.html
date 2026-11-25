@@ -285,6 +285,79 @@ figcaption b{font-style:normal;font-family:var(--sans);font-weight:700;letter-sp
 .p-foot{font:600 11px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--silver);border-top:1px solid var(--rule);padding-top:10px;display:flex;justify-content:space-between}
 .p-rate{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
 .p-rate .p-opt{justify-content:center;font-size:26px;padding:16px 0}
+
+/* ============ READER: portrait phones read the deck as a scrolling magazine ============ */
+html.rd,html.rd body{height:auto}
+.rd body{background:var(--paper)}
+.rd #deck{position:static;overflow:visible}
+.rd .stage{position:static;width:auto;height:auto;transform:none;box-shadow:none;overflow:visible}
+.rd .stage::before,.rd .wipe,.rd .ctrl,.rd .timer,.rd .mini-qr,.rd [data-qr]{display:none!important}
+.rd .progress{position:fixed}
+.rd .slide{position:relative;inset:auto;opacity:1!important;visibility:visible!important;animation:none!important;transition:none!important;clip-path:none!important;transform:none!important;filter:none!important;
+  padding:62px 20px 34px;border-bottom:6px double var(--ink);height:auto;overflow:hidden}
+.rd .slide *{animation:none!important}
+.rd .slide .r{opacity:1!important;transform:none!important;clip-path:none!important}
+.rd .slide [style*="grid-template-columns"],.rd .t-grid,.rd .cols,.rd .tf,.rd .opener .op-in{display:flex!important;flex-direction:column!important;gap:22px!important;height:auto!important}
+.rd .slide [style*="height:100%"],.rd .slide [style*="height:calc"],.rd .pg,.rd .collage,.rd .front,.rd .vcol,.rd .words{height:auto!important}
+.rd .slide [style*="max-width"]{max-width:none!important}
+.rd .slide [style*="font-size:9"],.rd .slide [style*="font-size:8"],.rd .slide [style*="font-size:11"]{font-size:40px!important}
+.rd .slide [style*="font-size:5"],.rd .slide [style*="font-size:6"]{font-size:30px!important}
+.rd .slide [style*="margin-top:auto"]{margin-top:22px!important}
+.rd .cols>*{padding:16px 0 0!important;border-left:0!important;border-top:1px solid var(--rule)}
+.rd .cols>*:first-child{border-top:0;padding-top:0!important}
+.rd .mast{left:20px;right:20px;top:18px;font-size:9px;grid-template-columns:1fr auto;gap:8px}
+.rd .mast>:last-child{display:none}.rd .mast .nm{font-size:18px}
+.rd .folio{left:20px;right:20px;bottom:12px;font-size:9px}
+.rd .kicker{font-size:11px;margin-bottom:12px}.rd .kicker::after{width:36px}
+.rd .display,.rd .opener h1{font-size:40px!important}
+.rd .h2,.rd .statement,.rd .front .hl{font-size:30px!important}
+.rd .h3{font-size:25px}
+.rd .deckline{font-size:19px;margin-top:14px}
+.rd .lead,.rd .small,.rd .big-cols .small{font-size:16.5px!important;line-height:1.55}
+.rd .dropcap::first-letter{font-size:64px;padding:5px 8px 0 0}
+.rd .label{font-size:10.5px}.rd .byline{font-size:11px}
+.rd .pull{font-size:21px;padding:14px 0 14px 38px}.rd .pull::before{font-size:60px;top:6px}.rd .pull cite{font-size:10px}
+.rd .big-num,.rd .counter{font-size:64px!important}
+.rd .colhead,.rd .big-cols .colhead{font-size:21px}
+.rd .fact .yr{font-size:30px}
+.rd .box{padding:16px}
+.rd figcaption{font-size:12.5px}
+.rd .ph{min-height:190px;flex:none}
+.rd .thumbs{grid-template-columns:1fr;gap:20px}.rd .thumbs .ph,.rd .slide .ph[style*="height"]{height:170px!important}
+.rd .pano{height:120px;margin-bottom:20px}
+.rd .sheet{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.rd .sheet .rowl{grid-column:1/-1;writing-mode:horizontal-tb;transform:none;border-left:0;border-top:3px solid var(--ink);padding:8px 0 0;font-size:20px;justify-content:flex-start}
+.rd .sheet .ph{height:120px}.rd .sheet figcaption{font-size:11px}
+.rd .issue{flex-wrap:wrap;gap:14px}
+.rd .collage{height:auto!important;display:flex;flex-direction:column;gap:14px}
+.rd .collage figure{position:relative;inset:auto;width:auto;height:200px;transform:none}
+.rd .collage .c2,.rd .collage .c3{display:none}
+.rd .ticker{position:relative;bottom:auto;margin:18px -20px 0}
+.rd .opener{padding:0;min-height:88vh;display:flex;flex-direction:column;justify-content:flex-end}
+.rd .opener .op-in{position:relative;left:auto;right:auto;bottom:auto;padding:90px 20px 56px;gap:4px!important}
+.rd .opener .op-num{font-size:110px}
+.rd .opener .op-cr{left:20px;right:20px;top:auto;bottom:30px;font-size:11px;text-align:left;max-width:none}
+.rd .opener .shade{background:linear-gradient(0deg,rgba(17,16,15,.95) 30%,rgba(17,16,15,.35))}
+.rd .front{padding:18px;box-shadow:6px 6px 0 var(--stone)}
+.rd .front .fm .nm{font-size:24px}.rd .front .fm .dt{font-size:10px}.rd .front .yr{font-size:32px}
+.rd .front .fph{min-height:150px}
+.rd .stamp{font-size:26px;top:64px;right:16px;border-width:4px;padding:8px 12px 5px}
+.rd .opt,.rd .qslide .opt{grid-template-columns:30px minmax(0,1fr) 52px;padding:12px 0;gap:0 10px}
+.rd .opt .tx,.rd .qslide .opt .tx{font-size:21px}.rd .opt .k,.rd .qslide .opt .k{font-size:21px}.rd .opt .pc{font-size:16px}
+.rd .tf .side .nm{font-size:28px}.rd .tf .side .pc{font-size:20px}
+.rd .why p{font-size:15px}
+.rd .qr{max-width:240px;padding:12px;box-shadow:6px 6px 0 var(--stone)}
+.rd .rd-join{display:block!important}
+.rd .names{font-size:17px}
+.rd .lb li{grid-template-columns:38px minmax(0,1fr) 70px;padding:9px 0}.rd .lb li::before{font-size:24px}.rd .lb li b{font-size:20px}.rd .lb li span{font-size:16px}
+.rd .words span{font-size:min(1em,30px)!important}
+.rd .vid{height:auto!important;aspect-ratio:16/9}
+.rd .folio,.rd .why,.rd .stamp{display:none!important}
+.rd .slide{padding-bottom:28px}
+.rd .opener .op-cr{position:relative;left:auto;right:auto;bottom:auto;top:auto;padding:0 20px 26px;color:#9d968d}
+.rd .opener .op-in{padding-bottom:18px}
+.rd .ticker{margin-top:30px}
+.rd-join{display:none;margin-top:16px;background:var(--red);color:#fff;text-align:center;font:700 14px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;padding:16px;text-decoration:none}
 </style>
 </head>
 <body>
@@ -742,6 +815,10 @@ const setLive = (el, ok, txtOk, txtNo) => { if (!el) return; el.classList.toggle
 
 /* ======================= ROUTER ======================= */
 const isPhone = location.hash === '#join';
+const RD = () => !isPhone && matchMedia('(max-width:760px) and (orientation:portrait)').matches;
+document.documentElement.classList.toggle('rd', RD());
+/* phones/tablets only watch the deck: they must never take control of the room */
+const QUIET = matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 700;
 $(isPhone ? '#phone' : '#deck').classList.remove('hidden');
 addEventListener('hashchange', () => location.reload());
 isPhone ? initPhone() : initDeck();
@@ -846,10 +923,11 @@ function initDeck() {
     $('#qrBig').innerHTML = q.createSvgTag({cellSize: 8, margin: 0, scalable: true});
     if (local) $('#qrBig').insertAdjacentHTML('afterend', `<p style="margin:14px 0 0;font:700 16px/1.4 var(--sans);color:var(--red)">QR жұмыс істемейді: сайт компьютерден ашылған. Сайтты GitHub Pages-ке жүктеңіз немесе кодтағы PUBLIC_URL жолына сілтемені жазыңыз.</p>`);
     $$('[data-qr]').forEach(e => e.innerHTML = q.createSvgTag({cellSize: 4, margin: 0, scalable: true}));
+    $('#qrBig').insertAdjacentHTML('afterend', `<a class="rd-join" href="${joinUrl}">Ойынға қосылу →</a>`);
   } catch { $('#qrBig').textContent = joinUrl }
 
   /* ---- scale ---- */
-  const fit = () => $('#stage').style.setProperty('--s', Math.min(innerWidth / 1600, innerHeight / 900));
+  const fit = () => { document.documentElement.classList.toggle('rd', RD()); $('#stage').style.setProperty('--s', Math.min(innerWidth / 1600, innerHeight / 900)) };
   addEventListener('resize', fit); fit();
 
   /* ---- room state ---- */
@@ -919,7 +997,7 @@ function initDeck() {
     return {stage: st, sec: s.dataset.sec};
   }
   let lastB = 0;
-  function broadcast() { if (standby) return; lastB = Date.now(); pub({t: 'stage', sid, did, act: actT, ...stageObj()}) }
+  function broadcast() { if (standby || QUIET) return; lastB = Date.now(); pub({t: 'stage', sid, did, act: actT, ...stageObj()}) }
   setInterval(() => { if (Date.now() - lastB > 9000) broadcast() }, 3000);
   const touch = () => { actT = Date.now(); standby = false };
 
@@ -993,7 +1071,7 @@ function initDeck() {
     else if (k === 'Home') go(0); else if (k === 'End') go(slides.length - 1);
   });
   let sx = null; addEventListener('touchstart', e => sx = e.touches[0].clientX, {passive: true});
-  addEventListener('touchend', e => { if (sx == null) return; const d = e.changedTouches[0].clientX - sx; if (Math.abs(d) > 60) act(d < 0 ? 'next' : 'prev'); sx = null });
+  addEventListener('touchend', e => { if (sx == null || RD()) return; const d = e.changedTouches[0].clientX - sx; if (Math.abs(d) > 60) act(d < 0 ? 'next' : 'prev'); sx = null });
   let hideT; addEventListener('mousemove', () => { $('#ctrl').classList.add('show'); clearTimeout(hideT); hideT = setTimeout(() => $('#ctrl').classList.remove('show'), 2200) });
 
   renderRefl(); go(cur);
